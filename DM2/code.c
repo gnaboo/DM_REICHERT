@@ -62,9 +62,16 @@ int derive(double* tab, int size) {
 int multpol(double* tab, double* tab2, int size, int size2)
 
 
+int char_to_int(char caracter) {
+    assert(caracter > )
+    caracter
+}
+
 // Exo 27
 int cesar(char* string, int a, int b) {
     assert(a != 0) // la fonction est bijective
+
+    
 }
 
 // Exo 28
@@ -87,7 +94,7 @@ char* auguste_2(int nombre) {
     
     char* string = malloc(sizeof(char)*nombre);
 
-    for(int i = 0; i<13;i++) {
+    for(int i = 0; i<13; i++) {
         if(nombre > values[i]) {
             int val = (nombre - modfloat(nombre, values[i])) / values[i];
             symb[i] = val; // [*\tilde M] = [3]

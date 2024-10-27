@@ -77,6 +77,35 @@ char* auguste(int nombre) {
     return string;
 }
 
+char* auguste_2(int nombre) {
+    assert((nombre > 1) && (number < 3999));
+
+    int values[] = {1000, 900, 500, 400, 100, 90, 50, 40, 10, 5, 4, 1};
+    char* symboles[] = {"M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "V", "IV", "I"};
+    char* symb[13] = {};
+    int size = 0;
+    
+    char* string = malloc(sizeof(char)*nombre);
+
+    for(int i = 0; i<13;i++) {
+        if(nombre > values[i]) {
+            int val = (nombre - modfloat(nombre, values[i])) / values[i];
+            symb[i] = val; // [*\tilde M] = [3]
+            nombre -= val*values[i]; // ex: -3*1000 si MMM
+            size += val; // ex: size += 3;
+        }
+    }
+
+    char* string = malloc(sizeof(char), size);
+    for(int i = 0; i<size; i++) {
+        for(int y = 0; y<symb[i]; y++) {
+            string[i] = symb[i];
+        }
+    }
+
+    return string;
+}
+
 
 
 int main() {

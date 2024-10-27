@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <math.h>
+#include <assert.h>
 
 // Exo 20
 int spitze(bool* tab, int size) {
@@ -35,7 +36,7 @@ double modfloat(double a, double b) {
 // Exo 23
 int* minmax(int* tab, int size) {
     int max = tab[0];
-    int min = max;
+    int min = max; // tab[0];
     for(int i = 0; i<size; i++) {
         if(tab[i] > max) max = tab[i];
         if(tab[i] < min) min = tab[i];
@@ -47,11 +48,35 @@ int* minmax(int* tab, int size) {
 }
 
 // Exo 24
-int medianemax(int* tab, int size) {
-    
-    
-    
+int medianemax(int* tab, int size)
+
+
+// Exo 25
+int derive(double* tab, int size) {
+    for(int i = 0; i<size; i++) {
+        tab[i] = i*tab[i];
+    }
 }
+
+// Exo 26
+int multpol(double* tab, double* tab2, int size, int size2)
+
+
+// Exo 27
+int cesar(char* string, int a, int b) {
+    assert(a != 0) // la fonction est bijective
+}
+
+// Exo 28
+char* auguste(int nombre) {
+    assert((nombre > 1) && (number < 3999));
+    char* string = malloc(sizeof(char)*nombre);
+    for(int i = 0; i<nombre; i++) {
+        string[i] = "I"; // il ne s'agit pas de la notation 'standard' mais il s'agit néanmoins d'une notation correcte.
+    }
+    return string;
+}
+
 
 
 int main() {

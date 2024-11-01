@@ -59,19 +59,65 @@ int derive(double* tab, int size) {
 }
 
 // Exo 26
-int multpol(double* tab, double* tab2, int size, int size2)
+double* convolve(double* a, int size_a, double* b, int size_b) { // technically not a convolution but a cross-correlation
+    int result_size = size_a + size_b - 1;
+    double* result = malloc(result_size * sizeof(double));
+    for(int i = 0; i < result_size; i++) {
+        result[i] = 0.0;
+    }
+
+    for(int i = 0; i < size_a; i++) {
+        for(int j = 0; j < size_b; j++) {
+            result[i+j] += a[i]*b[j];
+        }
+    }
+    return result;
+}
+
+int multpol(double* tab, double* tab2, int size, int size2) {
+    return convolve(tab, size, tab2, size2);
+}
 
 
-int char_to_int(char caracter) {
-    assert(caracter > )
-    caracter
+
+bool is_lowercase(char car)
+{
+    if (car >= 'a' && car <= 'z')
+        return true;
+    return false;
+}
+
+bool is_uppercase(char car)
+{
+    if (car >= 'A' && car <= 'Z')
+        return true;
+    return false;
+}
+
+bool is_letter(char car)
+{
+    return (is_lowercase(car) || is_uppercase(car));
+}
+
+int char_to_int(char car)
+{
+    // on pose A = a (et par extension cela pour toutes les lettres)
+
+    assert(is_letter(car))
+    if(is_lowercase(car)) return car - 64
+    if(is_uppercase(car)) return car - 96
 }
 
 // Exo 27
-int cesar(char* string, int a, int b) {
+char* cesar(char* string, int a, int b) {
     assert(a != 0) // la fonction est bijective
+    int size = (int) strlen(string);
+    char* new_string = malloc(sizeof(char)*size); 
 
-    
+    for(int i = 0; i<size; i++) {
+        new_string[i] = modfloat((a * char_to_int(string[i]) + b), 26);
+    }
+    return new_string;
 }
 
 // Exo 28

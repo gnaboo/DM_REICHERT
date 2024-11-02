@@ -2,6 +2,11 @@
 #include <stdbool.h>
 #include <math.h>
 #include <assert.h>
+#include <stdlib.h>
+
+const true = 1;
+const false = 0;
+
 
 // Exo 20
 int spitze(bool* tab, int size) {
@@ -138,16 +143,6 @@ char* cesar(char* string, int a, int b) {
 
 // Exo 28
 char* auguste(int nombre) {
-    assert((nombre > 1) && (number < 3999));
-    char* string = malloc(sizeof(char)*nombre + 1);
-    for(int i = 0; i<nombre; i += 1) {
-        string[i] = "I"; // il ne s'agit pas de la notation 'standard' mais il s'agit néanmoins d'une notation correcte.
-    }
-    string[nombre + 1] = '\0';
-    return string;
-}
-
-char* auguste_2(int nombre) {
     assert((nombre >= 1) && (nombre <= 3999));
 
     int value[] = {1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1};
@@ -167,6 +162,58 @@ char* auguste_2(int nombre) {
     return result;
 }
 
+// Exo 29
+bool in_list(int* tab, int size, int element) {
+    for(int i = 0; i<size; i++) {
+        if(tab[i] == element) return true;
+    }
+    return false;
+}
+
+int first_iteration(int* tab, int size, int element) {
+    for(int i = 0; i<size; i++) {
+        if(tab[i] == element) return i;
+    }
+    return -1;
+}
+
+int min(int* tab, int size) {
+    int _min = tab[0];
+    for(int i = 0; i<size; i++) {
+        if(tab[i] < _min) {
+            _min = tab[i];
+        }
+    }
+    return _min;
+}
+
+int* ecart(int* tab, int size) {
+    int* repertoire = malloc(sizeof(int) * size);
+    for(int i = 0; i<size; i++) { repertoire[i] = 0; }
+
+    for(int i = 0; i<size; i++) {
+        int indice = first_iteration(tab, size, tab[i]);
+        repertoire[indice] += 1;
+    }
+    
+    for(int i = 0; i<size; i++) {
+        if(repertoire[i] == 0) repertoire[i] = size + 1; // exclure les 0 placés par la fonction précédente
+    }
+
+    int min_1 = min(repertoire, size);
+    
+    int min_1_indice = first_iteration(repertoire, size, min_1);
+    repertoire[min_1_indice] = size + 2; // new max
+    
+    int min_2 = min(repertoire, size);
+    int min_2_indice = first_iteration(repertoire, size, min_2);
+
+    int* return_value = malloc(sizeof(int) * 2);
+    return_value[0] = tab[min_1_indice];
+    return_value[1] = tab[min_2_indice];
+
+    return return_value;
+}
 
 
 int main() {

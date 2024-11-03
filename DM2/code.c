@@ -4,9 +4,6 @@
 #include <assert.h>
 #include <stdlib.h>
 
-const true = 1;
-const false = 0;
-
 
 // Exo 20
 int spitze(bool* tab, int size) {
@@ -16,20 +13,31 @@ int spitze(bool* tab, int size) {
     for(int i = 1; i<size; i += 1) {
         if(tab[i] != first) return i-1;
     }
-    return 1;
-}
-
-int position_of_last(bool* tab, int size, bool searched) {
-    for(int i = 1; i<size-1; i += 1) {
-        if(tab[size-i]==searched) return size-i;
-    }
-    return -1; // error
+    return 1; // s'il n'y a pas d'éléments différents
 }
 
 // Exo 21
-void nul(bool* tab, int size) { // incompréhensible l'énoncé bordel
-    int pos = position_of_last(tab, size, true);
-    return pos;
+bool nul(bool *t, int size)
+{
+    int tr=0;
+    int fa=0;
+
+    int last_tr= 0;
+    for (int i=0; i<size; i+=1)
+    {
+        if (t[i]) last_tr=i;
+    }
+    
+    int j=0;
+    while (j<last_tr)
+    {
+        j+=1;
+        if(t[j]) tr+=1;
+        else fa +=1;
+        
+        if (fa>tr) return false;
+    }
+    return true;
 }
 
 // Exo 22
@@ -66,7 +74,35 @@ int* minmax(int* tab, int size) {
 }
 
 // Exo 24
-int medianemax(int* tab, int size);
+int medianemax(int *t, int size)
+{
+    int max=t[0];
+    for (int i=1; i<size;i+=1)
+    {
+        if (t[i]>max) max=t[i];
+    }
+    
+    int *indices = malloc(size*sizeof(int));
+    int count = 0;
+    for (int i = 0; i<size; i+=1)
+    {
+        if (t[i]==max)
+        {
+            indices[count]=i;
+            count+=1;
+        }
+    }
+    
+    int mediane;
+    if (count%2 == 0) {
+        mediane=indices[(count/2)-1];
+    }
+    else {     
+        mediane=indices[count/2];
+    }
+    free(indices);
+    return mediane;
+}
 
 
 // Exo 25
@@ -92,7 +128,7 @@ double* convolve(double* a, int size_a, double* b, int size_b) { // technically 
     return result;
 }
 
-int multpol(double* tab, double* tab2, int size, int size2) {
+double* multpol(double* tab, double* tab2, int size, int size2) {
     return convolve(tab, size, tab2, size2); // multiplying a polynomial is equivalent to the convolution of the coefficiants
 }
 
@@ -117,26 +153,54 @@ bool is_letter(char car)
     return (is_lowercase(car) || is_uppercase(car));
 }
 
-int char_to_int(char car)
-{
-    // on pose A = a (et par extension cela pour toutes les lettres)
 
-    assert(is_letter(car))
-    if(is_lowercase(car)) return car - 64;
-    if(is_uppercase(car)) return car - 96;
+// from TP1
+int PGCD(int a, int b) {
+    int c = a;
+    int x = 0;
+    if(a == b) return abs(a);
+    if(a < b) {
+        c = b;
+        b = a;
+    }
+    while (a != 0) {
+        a = c % b; // r = a, soit c = b * x + a
+
+        x = (int) (c - a) / b;
+        c = b;
+        b = a;
+    }
+    return c;
 }
-
-
 
 // Exo 27
 char* cesar(char* string, int a, int b) {
-    assert(a != 0); // la fonction est bijective
+    assert(a != 0 && PGCD(a, 26) == 1); // la fonction est bijective
+    // vérifie que a et 26 sont premiers entre eux (parce que pourquoi pas)
+
     int size = (int) strlen(string);
-    char* new_string = malloc(sizeof(char)*size); 
+    char* new_string = malloc(sizeof(char) * (size+1)); 
 
     for(int i = 0; i<size; i += 1) {
-        new_string[i] = modfloat((a * char_to_int(string[i]) + b), 26);
+        if(!is_letter(string[i])) {
+            new_string[i] = string[i];
+            continue;
+        }
+        if(is_lowercase(string[i])) {
+            new_string[i] = 'a'-1 + ((a * (string[i]+1-'a') + b) % 26 + 26) % 26;
+        }
+        else {
+            //printf("%d:%d\n", string[i], 'A'-1+((a*((string[i]) +1-'A')+b)%26+26)%26);
+            new_string[i] = 64+((a * (string[i]+1 - 'A') + b) % 26 + 26) % 26;
+        
+            
+        }
+
+        //printf("%c\n", string[i]);
+        //printf("%c\n", new_string[i]);
     }
+
+    new_string[size] = '\0';
     return new_string;
 }
 
@@ -163,16 +227,19 @@ char* auguste(int nombre) {
     return result;
 }
 
+
+
+
 // Exo 29
 bool in_list(int* tab, int size, int element) {
-    for(int i = 0; i<size; i++) {
+    for(int i = 0; i<size; i += 1) {
         if(tab[i] == element) return true;
     }
     return false;
 }
 
 int first_iteration(int* tab, int size, int element) {
-    for(int i = 0; i<size; i++) {
+    for(int i = 0; i<size; i += 1) {
         if(tab[i] == element) return i;
     }
     return -1;
@@ -180,7 +247,7 @@ int first_iteration(int* tab, int size, int element) {
 
 int min(int* tab, int size) {
     int _min = tab[0];
-    for(int i = 0; i<size; i++) {
+    for(int i = 0; i<size; i += 1) {
         if(tab[i] < _min) {
             _min = tab[i];
         }
@@ -190,14 +257,14 @@ int min(int* tab, int size) {
 
 int* ecart(int* tab, int size) {
     int* repertoire = malloc(sizeof(int) * size);
-    for(int i = 0; i<size; i++) { repertoire[i] = 0; }
+    for(int i = 0; i<size; i += 1) { repertoire[i] = 0; }
 
-    for(int i = 0; i<size; i++) {
+    for(int i = 0; i<size; i += 1) {
         int indice = first_iteration(tab, size, tab[i]);
         repertoire[indice] += 1;
     }
     
-    for(int i = 0; i<size; i++) {
+    for(int i = 0; i<size; i += 1) {
         if(repertoire[i] == 0) repertoire[i] = size + 1; // exclure les 0 placés par la fonction précédente
     }
 
@@ -220,6 +287,9 @@ int* ecart(int* tab, int size) {
 
     return return_value;
 }
+
+
+
 
 
 int main() {

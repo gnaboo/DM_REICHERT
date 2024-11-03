@@ -48,6 +48,7 @@ double modfloat(double a, double b) {
     return a - (c*b);
 }
 
+
 // Exo 23
 int* minmax(int* tab, int size) {
     assert(size > 0);
@@ -65,7 +66,7 @@ int* minmax(int* tab, int size) {
 }
 
 // Exo 24
-int medianemax(int* tab, int size)
+int medianemax(int* tab, int size);
 
 
 // Exo 25
@@ -208,7 +209,12 @@ int* ecart(int* tab, int size) {
     int min_2 = min(repertoire, size);
     int min_2_indice = first_iteration(repertoire, size, min_2);
 
+    free(repertoire);
+
     int* return_value = malloc(sizeof(int) * 2);
+    
+    if(min_1 > 1 && min_2 > 1) min_2_indice = min_1_indice;
+    
     return_value[0] = tab[min_1_indice];
     return_value[1] = tab[min_2_indice];
 
@@ -230,8 +236,24 @@ int main() {
     printf("%f\n", modfloat(12, 5));
     printf("%f\n", modfloat(18.2, 29));
     
+    /* Conditions de test fournit par Ezequiel (parce que j'avais rien compris à l'énoncé)
+    Merci Ezequiel :)
+    */
+    int table1[] = {1, 2, 3, 4, 1, 2, 3, 4, 5, 6};
+    int table2[] = {1, 2, 3, 1, 2, 4, 1, 2, 3, 1, 2};
+    int table3[] = {1, 2, 3, 4, 5, 6, 7, 1, 2, 3, 4, 5, 6, 7};
 
+    int* result1 = ecart(table1, 10);
+    int* result2 = ecart(table2, 11);
+    int* result3 = ecart(table3, 14);
 
+    printf("Result: %d, %d\n", result1[0], result1[1]); // Expected: 5, 6
+    printf("Result: %d, %d\n", result2[0], result2[1]); // Expected: 4, 3
+    printf("Result: %d, %d\n", result3[0], result3[1]); // Expected: 1, 1
+
+    free(result1);
+    free(result2);
+    free(result3);
 
     return 0;
 }

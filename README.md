@@ -7,8 +7,10 @@ Dans un monde obsédé par le pouvoir, le Grand J. R. vous rappelle que vous n'�
 > Matériel nécessaire:
 > - Un PAMAS-G1
 > - 1 cartouche de 9mm Parabellum
+
 > Instructions:
 > - Effectuer le contrôle personnel de sécurité, puis charger l'arme.
 > - Apposer l'arme à sa tempe
 > - Appuyer sur la queue de détente
-> Félicitations, vous êtes enfin libre.
+
+# Félicitations, vous êtes enfin libre.

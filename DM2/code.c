@@ -3,16 +3,14 @@
 #include <math.h>
 #include <assert.h>
 #include <stdlib.h>
+#include <string.h>
 
 
 // Exo 20
 int spitze(bool* tab, int size) {
     assert(size > 0);
-
     bool first = tab[0];
-    for(int i = 1; i<size; i += 1) {
-        if(tab[i] != first) return i-1;
-    }
+    for(int i = 1; i<size; i += 1) { if(tab[i] != first) return i-1; }
     return 1; // s'il n'y a pas d'éléments différents
 }
 
@@ -182,28 +180,13 @@ char* cesar(char* string, int a, int b) {
     char* new_string = malloc(sizeof(char) * (size+1)); 
 
     for(int i = 0; i<size; i += 1) {
-        if(!is_letter(string[i])) {
-            new_string[i] = string[i];
-            continue;
-        }
-        if(is_lowercase(string[i])) {
-            new_string[i] = 'a'-1 + ((a * (string[i]+1-'a') + b) % 26 + 26) % 26;
-        }
-        else {
-            //printf("%d:%d\n", string[i], 'A'-1+((a*((string[i]) +1-'A')+b)%26+26)%26);
-            new_string[i] = 64+((a * (string[i]+1 - 'A') + b) % 26 + 26) % 26;
-        
-            
-        }
-
-        //printf("%c\n", string[i]);
-        //printf("%c\n", new_string[i]);
+        if(!is_letter(string[i])) new_string[i] = string[i];
+        else if(is_lowercase(string[i])) new_string[i] = 'a'-1 + ((a * (string[i]+1-'a') + b))%26;
+        else new_string[i] = 64 + (a * (string[i]+1 - 'A') + b)%26;
     }
-
     new_string[size] = '\0';
     return new_string;
 }
-
 
 
 // Exo 28
@@ -292,7 +275,7 @@ int* ecart(int* tab, int size) {
 
 
 
-int main() {
+int main() {/*
     printf("----- Exercice 20 - spitze -----\n");
     bool tab[8] = {true, true, true, true, true, false, true, true};
     printf("%d\n", spitze(tab, 8));
@@ -309,6 +292,8 @@ int main() {
     /* Conditions de test fournit par Ezequiel (parce que j'avais rien compris à l'énoncé)
     Merci Ezequiel :)
     */
+
+   /*
     int table1[] = {1, 2, 3, 4, 1, 2, 3, 4, 5, 6};
     int table2[] = {1, 2, 3, 1, 2, 4, 1, 2, 3, 1, 2};
     int table3[] = {1, 2, 3, 4, 5, 6, 7, 1, 2, 3, 4, 5, 6, 7};
@@ -324,6 +309,7 @@ int main() {
     free(result1);
     free(result2);
     free(result3);
+    */
 
     return 0;
 }

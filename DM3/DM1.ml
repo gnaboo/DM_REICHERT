@@ -46,6 +46,9 @@ leeloo [1;2;3;4];;
 leeloo [1;2;3;4;5];;
 leeloo [1;2;3;4;6;7];;
 
+
+
+
 let rec compte l el = let rec counter l c = match l with
 	| [] -> c
 	| b::q -> if b = el then counter q (c+1) else counter q c
@@ -83,6 +86,36 @@ test_bool (pos 1);;
 test_bool (pos (-1));;
 majopred [1;2;3;-1;-3; -1876] (pos);;
 majopred [1;2;3;-1;-3;-2;-1] (pos);;
+
+let rec lexico l o_l = let rec get_element l b el = match l with 
+	| [] -> failwith "Fond de liste"
+	| a::q -> if b = el then a else get_element q (b+1) el
+	in let rec aux l o_l c = match l with
+	| [] when o_l = [] -> failwith "Les deux listes sont vides"
+	| [] -> true
+	| a::q -> try get_element o_l 1 c with
+		| b -> if a > b then false else aux l o_l (c+1)
+		| _ -> false 
+	in aux l o_l 1;;
+	
+let lexico l o_l = let rec aux l o_l c = match l with
+	| [] when o_l = [] -> failwith "Les deux listes sont vides"
+	| [] -> true
+	| a::q -> match o_l with
+		| [] -> false
+		| b::s -> if a > b then true else aux l s;;
+		
+let rec lexico l o_l = match l with
+	| [] when o_l = [] -> failwith "Les deux listes sont vides"
+	| [] -> true
+	| a::q -> match o_l with
+		| [] -> false
+		| b::s -> if a < b then true
+					 else if a > b then false 
+					 else lexico q s;;
+	
+lexico [1;2;3] [1;2;3;4;5];;
+
 
 
 

@@ -46,7 +46,32 @@ leeloo [1;2;3;4];;
 leeloo [1;2;3;4;5];;
 leeloo [1;2;3;4;6;7];;
 
+let coupe l = let rec aux l ol_1 ol_2 b = match l with
+	| [] -> (ol_1, ol_2)
+	| a::q -> if b mod 2 = 0 then aux q (ol_1@[a]) ol_2 (b+1)
+				 else aux q ol_1 (ol_2@[a]) (b+1) in aux l [] [] 0;;
+			 
+coupe [1;2;3;4;5];;
 
+(*let colle l o_l = let rec aux l o_l l_f b = match l with
+	| a::q when b = let rec count l = match l with
+		| [] -> 0
+		| a::q -> 1 + count q
+	in count l + count o_l -> l_f
+	| a::q when b mod 2 = 0 -> aux q o_l (l_f@[a]) (b+1)
+	| _ -> match o_l with
+		| a::q -> aux l q (l_f@[a]) (b+1)
+	in aux l o_l [] 0;;*)
+
+let colle l o_l = let rec aux l o_l l_f b = match l with
+	| [] when o_l = [] -> l_f
+	| a::q when b mod 2 = 0 -> aux q o_l (l_f@[a]) (b+1)
+	| _ -> match o_l with
+		| a::q -> aux l q (l_f@[a]) (b+1)
+	in aux l o_l [] 0;;
+
+
+colle [1;2;3] [4;5;6];;
 
 
 let rec compte l el = let rec counter l c = match l with

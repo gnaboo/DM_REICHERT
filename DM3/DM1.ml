@@ -144,6 +144,11 @@ lexico [1;2;3] [1;2;3;4;5];;
 
 
 
+let aplatir l = let rec aux l n_l = match l with
+	| [] -> n_l
+	| a::q -> aux q (n_l@a)
+	in aux l [];;
+aplatir [[1;2;3;4];[5;6;7];[8;9;10;11];[12]];;
 
 
 let aplatir l = 
@@ -158,6 +163,13 @@ let aplatir l =
 	in match l with = 
 	| [] -> []
 	| a -> iter l;;
+	
+
+let rec aplatir l = match l with
+	| [] -> ()
+	| a::q -> ( a @ (aplatir q));;
+	
+aplatir [[1;2;3;4];[5;6;7];[8;9;10;11];[12]];;
 	
 
 let rec append l a = match l with

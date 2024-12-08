@@ -5,8 +5,8 @@ Dans un monde obsédé par le pouvoir, le Grand J. R. vous rappelle que vous n'�
 
 ```mermaid
 graph TD;
-    Partir en MP2I-->Prendre option SI;
-    Partir en MP2I-->Prendre option Info;
+    [Partir en MP2I]-->[Prendre option SI];
+    [Partir en MP2I]-->[Prendre option Info];
     Prendre option SI-->Etre une grosse merde;
     Prendre option Info-->Etre un goat;
     Etre une grosse merde-->Etre depressif en prepa;

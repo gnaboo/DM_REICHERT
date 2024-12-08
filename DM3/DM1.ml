@@ -1,10 +1,7 @@
-(* DEVOIR MAISON DE GABRIEL RINGEISEN--BIARDEAUD *)
+
 
 let plusetfois a b = [a+b;a*b];;
-
 plusetfois 2 5;;
-
-
 
 let ppp2 a = let rec comp a b = if b >= a then b else comp a (b*2) 
 	in comp a 1;;	
@@ -12,6 +9,15 @@ let ppp2 a = let rec comp a b = if b >= a then b else comp a (b*2)
 ppp2 1;;
 ppp2 2147483649;;
 
+(*let rec power a b = if a > 2**;;*)
+
+(*let leeloo l = match l with
+	|a::b::c::d::e::q -> e
+	|a::b::c::d::e -> e.(0)
+	|_ -> 0;
+
+leeloo [1;2;3;4;5] 5;;
+*)
 
 
 let leeloo l = let rec get_element l b = match l with 
@@ -34,12 +40,14 @@ coupe [1;2;3;4;5];;
 
 
 
+
 let colle l o_l = let rec aux l o_l l_f b = match l with
 	| [] when o_l = [] -> l_f
 	| a::q when b mod 2 = 0 -> aux q o_l (l_f@[a]) (b+1)
 	| _ -> match o_l with
 		| a::q -> aux l q (l_f@[a]) (b+1)
 	in aux l o_l [] 0;;
+
 
 colle [1;2;3] [4;5;6];;
 
@@ -54,10 +62,13 @@ compte [1;2;3;4;4;2;1] 0;;
 
 
 
+
+
 let sommesi l func = let rec eval l c = match l with
 	| [] -> c
 	| a::q -> if func (a) then eval q (a+c) else eval q c
 	in eval l 0;;
+
 
 let pos a = a >= 0;;
 sommesi [1;2;3;-1;-3; -1876] (pos);;
@@ -70,6 +81,7 @@ let majopred l func = let rec intern l balance = match l with
 	in if intern l 0 >= let rec size l c = match l with
 		| [] -> 0
 		| a::q -> c+size q c in size l 0 / 2 then true else false;;
+
 
 let pos a = a >= 0;;
 majopred [1;2;3;-1;-3; -1876] (pos);;
@@ -90,11 +102,11 @@ lexico [1;2;4] [1;2;3;4;5];;
 
 
 
+
 let aplatir l = let rec aux l n_l = match l with
 	| [] -> n_l
 	| a::q -> aux q (n_l@a)
 	in aux l [];;
-
 aplatir [[1;2;3;4];[5;6;7];[8;9;10;11];[12]];;
 
 

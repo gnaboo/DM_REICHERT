@@ -1,0 +1,91 @@
+1 : correction, 2 : terminaison, 3 : complexité 
+
+(* Exercice 33 *)
+
+(* Fonction E *) 1 2
+
+let coupe l = 
+  let m = [] and n = [] in 
+  let rec coupage l m n = match l with
+    |[] -> (m, n)
+    |[a] -> if List.length m = List.length n then (m@[a], n) else (m, n@[a])
+    |hd::tl -> if List.length m = List.length n then 
+          coupage tl (m@[hd]) n else coupage tl m (n@[hd])
+  in coupage l m n;;
+
+Correction: la fonction coupe vérifie les 3 cas possibles: 
+	- lorsque la liste est vide alors la fonction renvoie 2 listes vides
+	- lorsque la liste contient qu'un seul élément alors seulement la première liste envoyée a cet élément
+	- lorsque la liste est remplie, la fonction s'occupe de trier en alternant le remplissage des 2 listes renvoyés
+Dans les 3 cas, la fonction renvoie 2 listes possédant les éléments alternés de la liste entrée en argument
+
+Terminaison: la liste entrée en argument est soit vide soit remplie avec un élément soit remplie avec plusieurs éléments. La fonction coupe va avancer au fur et à mesure dans les éléments et va forcément finir par atteindre le cas d'une liste vide et donc la fonction se termine en renvoyant 2 listes avec la liste de base coupée.
+
+
+(* Fonction F *) 2
+ 
+let rec coupe l = match l with
+	| [] -> failwith "oups"
+	| [e] -> (l, [])
+	| t::q -> ([t]@(fst (coupe (List.tl q))), [List.hd q]@(snd (coupe (List.tl q))))
+
+Terminaison: La fonction se finit par une erreur sauf si la liste en argument est un singleton. La liste est parcourue jusqu'à ce qu'il ne reste qu'un élément vide qui provoque une erreur de List.tl ou List.hd ou simplement si la liste d'origine est vide alors il y a le message d'erreur "Oups"
+
+(* Exercice 34 *)
+
+(* Fonction G *) 2
+
+let colle l1 l2 = 
+    let rec collage l l1 l2 = match l1 with
+    | [] -> l
+    | a::s -> match l2 with
+        | [] -> l
+        | b::t -> collage (l@[a]@[b]) s t
+    in collage [] l1 l2;;
+
+Terminaison: La fonction progresse à chaque fois d'un élément dans l1 et l2 jusqu'à n'obtenir que 2 listes vides et retourner le résultat l
+
+(* Exercice 37 *)
+
+(* Fonction J *) 2
+
+let majopred l pred =
+let moitié = if (List.length l) mod 2 = 1 then 
+(List.length l)/2 + 1 else (List.length l)/2 in
+print_int moitié;
+let n =
+let rec combien l pred = match l with
+	| []->0
+	| a::q -> if pred a then 1 + combien q pred 
+	else combien q pred;
+in combien l pred;
+in n>=moitié;;
+
+Terminaison: A chaque itération, la fonction parcoure une liste de moins en moins grande et va donc se finir à un moment.
+
+(* Fonction L *) 2 3
+
+let rec majopred l f =
+	let rec aux l f [|i; n|] =
+		match l with
+			|[] -> [|i; n|]
+			|a::q -> if f a then [|i + 1; n + 1|] else [|i; n + 1|]
+			in float_of_int (aux l f [|0;  0|]).(0) >= float_of_int (aux l f [|0; 0|]).(1) /. 2.;;
+
+Terminaison: A chaque appel récursif, la taille de la liste diminue pour atteindre le cas de base qui va faire s'arrêter la fonction.
+Complexité: 
+	- Prédicat: O(C_p)
+	- Aux: O(N) avec N la taille de la liste
+	- Comparaison finale: O(1)
+=> Finale: O(C_p * N)
+
+(* Exercice 18 *)
+
+(* Fonction M *) 1
+
+let rec lexico l1 l2 = match l1,l2 with
+| [],[] -> true
+| a::q,b::r -> if a<b then lexico q r else false;;
+
+Correction: Il manque les cas de base [],_ -> true et _, [] -> false. Et dans la comparaison de a et b, il faut traiter les cas où a>b pour renvoyer false 
+et lorsqu'ils ont égaux pour continuer la récursivité

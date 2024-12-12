@@ -1,0 +1,90 @@
+DM 4 RHITA PARTIES 
+
+(* Fonction I *)
+
+let majopred l p =
+	if l=[] then false else
+	let y = List.length l in
+	let rec majop l p n = match l with
+	|a::q -> if p a then majop q p (n+1) else majop q p n
+	|[] -> if n >= ((y+1)/2) then true else false
+in majop l p 0;;
+
+2 - Terminaison
+Fonction récursive, le programme termine vers un cas de base (liste vide) qui évalue le calcul de n (nombre de fois où le prédicat est vérifié)
+
+
+3 - Complexité 
+Cas de la liste vide répété deux fois, cependant complexité en O(n)
+
+
+
+
+(* Fonction D *)
+
+let coupe liste=
+let rec aux k x liste =
+match liste with
+|[]->[]
+|a::q-> if x mod 2 =k then a::(aux k (x+1) q) else aux k (x+1) q in
+(aux 0 0 liste, aux 1 0 liste);;
+
+3 - Complexité : linéaire, O(n)
+
+(* Fonction K *)
+
+let majopred liste predicat = 
+let rec aux liste predicat = match liste with
+|[]-> 0
+|a::q -> if predicat a then 1 + aux q predicat else aux q predicat
+in let taille = List.length liste 
+in if aux liste predicat > taille / 2 then true else false;;
+
+1- Correction 
+La fonction doit renvoyer un booléen pas un nombre (0). 
+Le "let taille" devrait être introduit au début par exemple (avant le "let rec aux..."). 
+
+
+2- Terminaison 
+Le programme arrive bien à un cas de base à la fin (liste vide)
+
+
+(* Fonction G *)
+
+let colle l1 l2 = 
+    let rec collage l l1 l2 = match l1 with
+    | [] -> l
+    | a::s -> match l2 with
+        | [] -> l
+        | b::t -> collage (l@[a]@[b]) s t
+    in collage [] l1 l2;;
+
+
+3- Complexité 
+@ non recommandé (complexité linéaire). Compléxité cubique (?)
+
+
+(* Fonction F *)
+ 
+let rec coupe l = match l with
+	| [] -> failwith "oups"
+	| [e] -> (l, [])
+	| t::q -> ([t]@(fst (coupe (List.tl q))), [List.hd q]@(snd (coupe (List.tl q))))
+
+3- Complexité 
+
+le @ n'est pas recommandé (complexité linéaire, parcourt la liste)
+ici, complexité O(n²)
+
+(* Fonction B *)
+
+let leeloo l =
+  let r = ref l in
+  r := List.rev !r;
+  while List.length !r > 5 do
+  r := List.tl !r done;
+List.hd !r;;
+
+
+2- Terminaison 
+Boucle while qui termine ici pour !r > 5, ce qui arrive à un moment donné selon la liste qu'on soumet au programme. 

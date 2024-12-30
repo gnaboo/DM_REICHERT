@@ -3,7 +3,6 @@ let print_float_array t =
 
 (* Exercice 41 : *)
 let tirette (t: int array): int =
-    (* if Array.len(t) mod 2 then failwith "Pas de taille paire" else *)
     if Array.length(t) mod 2 <> 0 then failwith "Pas de taille paire" else
     let sum = ref 0 in
         for i = 0 to Array.length(t) / 2 - 1 do
@@ -15,37 +14,33 @@ let tirette (t: int array): int =
 (* Exercice 43 : *)
 let croissant t =
     let rec aux i =
-        if i = Array.length(t) - 1 then true
-        else if t.(i) > t.(i + 1) then false
-        else aux (i + 1)
-    in aux 0 (* la pitite récursion terminal comme on aime *)
+        match t with
+        | [||] | [|_|] -> true
+        | _ -> i = Array.length(t) - 1 || (t.(i) <= t.(i + 1) && aux (i + 1))
+    in aux 0 (* la pitite récursion terminale comme on aime *)
 ;;
 
 (* Exercice 45 : *)
 let psrn (t1: float array) (t2: float array): float array =
     if Array.length(t1) <> Array.length(t2) then
         failwith "Les tableaux n'ont pas la même taille"
-    else
-        let t i = t1.(i) *. t2.(i) in
-        Array.init (Array.length(t1)) t
+    else let t i = t1.(i) *. t2.(i) in Array.init (Array.length(t1)) t
 ;;
 
 (* Exercice 47 : *)
 let plsci t =
     let i = ref 0 and max = ref 0 in
         for i1 = 0 to Array.length t - 1 do
-        let i2 = ref i1 and max2 = ref 1 in
-            while !i2 + 1 < Array.length t && t.(!i2) = t.(!i2 + 1) do
-                incr i2; incr max2
-            done;
+            let i2 = ref i1 and max2 = ref 1 in
+                while !i2 + 1 < Array.length t && t.(!i2) = t.(!i2 + 1) do
+                    incr i2; incr max2
+                done;
             if !max2 > !max then (max := !max2; i := !i2)
         done;
     (!i - !max, !max)
 ;;
 
-
 (* Exercice 49 : *)
-(* return the character appearing the most *)
 let dominant (s: string): string =
     let t = Array.make 256 0 in
         for i = 0 to String.length(s) - 1 do
@@ -80,7 +75,7 @@ let () =
 
     (* Exercice 47 : *)
     let t1 = [|1.; 2.; 2.; 3.; 3.; 3.; 4.; 4.; 4.; 4.; 5.; 5.; 5.; 5.; 5.|] in
-    let (i, max) = plsci t1 in Printf.printf "Index: %d Apparaîssant: %d\n" i max;
+    let (i, max) = plsci t1 in Printf.printf "Index: %d; Apparaîssant: %d\n fois" i max;
 
     let t2 = [|1.; 2.; 3.; 3.; 4.; 5.; 6.; 6.|] in
     let (i, max) = plsci t2 in print_int i; print_string " "; print_int max; print_newline();

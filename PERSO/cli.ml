@@ -27,12 +27,6 @@ let create_file memoire name content = write_memoire memoire name content;;
 
 
 
-type 'a 'b action = Memory_Read of int | Memory_Write of int * int | Display of 'a | Compute of 'b;;
-
-
-
-
-
 
 
 

@@ -15,6 +15,7 @@ graph TD
     K -->Y(Etre depressif et seul)
     B --> C{Choisir ses options}
     C -->|Prendre SI| D[Etre une sous merde]
+    D -->|Etre Lukas| F[Abandonner la prépa]
     C -->|Prendre informatique| E[Etre un goat]
     D--> Y
     E-->Y

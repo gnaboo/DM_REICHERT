@@ -6,8 +6,8 @@
 // Structures
 struct Couple { int a; int b; };
 
-struct HashNode { int key; int value; struct HashNode* next; };
-struct HashTable { int size; HashNode** table; };
+struct HashNode { int key; int count; struct HashNode* next; };
+struct HashTable { int size; struct HashNode** buckets; };
 
 // Typedefs
 typedef struct Couple Couple;
@@ -31,23 +31,37 @@ HashTable* create_table(int size)
 {
     HashTable* table = malloc(sizeof(HashTable));
 
-    table->table = malloc(size * sizeof(HashNode*));
+    table->buckets = malloc(size * sizeof(HashNode*));
     table->size = size;
 
-    for (int i = 0; i < size; i += 1) table->table[i] = NULL;
+    for (int i = 0; i < size; i += 1) table->buckets[i] = NULL;
     return table;
+}
+
+int get_count(HashTable* table, int key)
+{
+    int index = key % table->size;
+    HashNode* node = table->buckets[index];
+
+    while (node)
+    {
+        if (node->key == key) return node->count;
+        node = node->next;
+    }
+
+    return 0;
 }
 
 void insert_or_update_table(HashTable* table, int key, int value)
 {
     int index = key % table->size;
-    HashNode* node = table->table[index];
+    HashNode* node = table->buckets[index];
 
     while (node)
     {
         if (node->key == key)
         {
-            node->value = value;
+            node->count = value;
             return;
         }
 
@@ -57,28 +71,28 @@ void insert_or_update_table(HashTable* table, int key, int value)
     HashNode* new_node = malloc(sizeof(HashNode));
 
     new_node->key = key;
-    new_node->value = value;
-    new_node->next = table->table[index];
+    new_node->count = value;
+    new_node->next = table->buckets[index];
 
-    table->table[index] = new_node;
+    table->buckets[index] = new_node;
 }
 
 void free_table(HashTable* table)
 {
     for (int i = 0; i < table->size; i += 1)
     {
-        HashNode* node = table->table[i];
+        HashNode* node = table->buckets[i];
 
         while (node)
         {
             HashNode* next = node->next;
+            free(node);
 
-            free(next->key);
-            free(next);
+            node = next;
         }
     }
 
-    free(table->table);
+    free(table->buckets);
     free(table);
 }
 
@@ -167,20 +181,116 @@ bool equilibre(int* table, int size)
 
     HashTable* hash_table = create_table(size);
 
+    // set to 1 if the key is not in the table, else increment the count
     for (int i = 0; i < size; i += 1)
-        insert_or_update_table(hash_table, table[i], 1);
+        insert_or_update_table(hash_table, table[i], get_count(hash_table, table[i]) + 1);
 
-    // 
+    // Get the count of the first element as reference
+    int count = hash_table->buckets[0]->count;
+
+    for (int i = 1; i < hash_table->size; i += 1)
+    {
+        // If the count is different, the table is not balanced => return false
+        if (hash_table->buckets[i] && hash_table->buckets[i]->count != count)
+        {
+            free_table(hash_table);
+            return false;
+        }
+    }
+
+    free_table(hash_table);
+    return true;
 }
+
+// Exercice 56
+int premierabsent(int* table, int size)
+{
+    if (size == 0) return 0;
+
+    // get the lowest natural integer missing in the table
+    int min = table[0];
+
+    for (int i = 1; i < size; i += 1)
+        if (table[i] < min) min = table[i];
+
+    return (min > 0) ? 0 : min - 1;
+}
+
+// Exercice 57
+int rpz(char* s)
+{
+    // "moselle" => 7 letters
+
+    // set string to lowercase
+    for (int i = 0; s[i] != '\0'; i += 1)
+        if (s[i] >= 'A' && s[i] <= 'Z') s[i] = s[i] + 32;
+
+    int counts[] = { 0, 0, 0, 0, 0, 0, 0 };
+
+    for (int i = 0; s[i] != '\0'; i += 1)
+    {
+        if (s[i] == 'm') counts[0] += 1;
+        if (s[i] == 'o') counts[1] += 1;
+        if (s[i] == 's') counts[2] += 1;
+        if (s[i] == 'e') counts[3] += 1;
+        if (s[i] == 'l') counts[4] += 1;
+        if (s[i] == 'l') counts[5] += 1;
+        if (s[i] == 'e') counts[6] += 1;
+    }
+
+    int min = counts[0];
+
+    for (int i = 1; i < 7; i += 1)
+        if (counts[i] < min) min = counts[i];
+
+    return min;
+}
+
+// Exercice 58
+int* decomp(int n)
+{
+    if (n < 1)
+    {
+        printf("Erreur, n doit être un entier naturel non nul\n");
+        exit(1);
+    }
+
+    int* decomp = malloc((n - 1) * sizeof(int));
+    for (int i = 0; i < n - 1; i += 1) decomp[i] = 0;
+
+    int j = 0;
+
+    // start by decomposing by 2 (even numbers)
+    while (n % 2 == 0)
+    {
+        decomp[j] = 2;
+        j++; n /= 2;
+    }
+
+    // then decompose by odd numbers
+    for (int i = 3; i <= n && n > 1; i += 2)
+    {
+        while (n % i == 0)
+        {
+            decomp[j] = i;
+            j++; n /= i;
+        }
+    }
+
+    return decomp;
+}
+
+// Exercice 59
+// Non
 
 // Tests
 int main()
 {
     // Common variables
-    double table1[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 1.0, 1.1, 1.2, 1.3 };
-    int table2[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 1.0, 1.1, 1.2, 1.3 };
-    int table3[] = { 1, 2, 3, 1, 2, 4, 1, 2, 3, 1, 2 };
-    int table4[] = { 1, 2, 3, 2, 42, 42, 8, 8 };
+    double table1[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 1.0, 1.1, 1.2, 1.3 }; // 51
+    int table2[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 1.0, 1.1, 1.2, 1.3 };    // 52
+    int table3[] = { 1, 2, 3, 1, 2, 4, 1, 2, 3, 1, 2 };                  // 53
+    int table4[] = { 1, 2, 3, 2, 42, 42, 8, 8 };                         // 54, 55
 
     // Exercice 50
     Couple tab50 = tables(9);
@@ -210,7 +320,29 @@ int main()
 
     free(avant);
 
-    // 
+    // Exercice 55
+    bool balanced = equilibre(table4, 8);
+    printf("Exercice 55 : %s\n", balanced ? "Oui" : "Non");
+
+    // Exercice 56
+    int absent = premierabsent(table4, 8);
+    printf("Exercice 56 : %d\n", absent);
+
+    // Exercice 57
+    int min = rpz("moselle elle somme loles 42 = 57");
+    printf("Exercice 57 : %d\n", min);
+
+    // Exercice 58
+    int* decomp58 = decomp(42);
+
+    printf("Exercice 58 : ");
+    for (int i = 0; i < 41 && decomp58[i] != 0; i += 1) printf("%d ", decomp58[i]);
+    printf("\n");
+
+    free(decomp58);
+
+    // Exercice 59
+    // Juste non quoi
 
     return 0;
 }

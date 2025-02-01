@@ -1,0 +1,49 @@
+Léo-Paul : A1, B1, C2, E3, I1, M2, O2, O3, Q2
+1: correction, 2 : terminaison, 3 : complexité 
+
+-A: correction
+Pas la bonne quantité d'arguments dans la fonction de base => creer une sous fonction recursive à la place
+
+mauvais typage : Pas les bons arguments, est sensé prendre en arguments un entier. De meme, renvoie aégalement un float. 
+
+Second if inutile, double la complexité avec un test innutile : si il est pas inferieur ou également par définition il est supérieur (et fonctionne aussi bien sans ducoup)
+ 
+-B: correction
+Ne prend pas en compte les cas ou la liste est plus petite que 5. Donc lorsque la liste est plus petite que 5, le while ne se fait pas dutout et on renvoie le dernier élement meme si la lite est de 3 éléments
+
+-C : terminaison
+Déjà pour commencer c'est un fonction récursive alors qu'elle s'appelle meme pas elle meme ce qui est con 
+Elle se termine toute fois bien, prenons comme variant de boucle v = taille(l)-1-i. A chaque tours de boucle i augmente de 1 donc v reduit de 1 à chaque tours. La boucle s'arrete lorsque i = taille(l) -1 ce qui correspont alors v = 0. V est donc bien strictement décroissante jusque 0. La boucle se termine donc bien et alors le programme aussi. CQFD
+
+-E : complexité
+supposons correction et terminaison du programme (j'en ai aucune idée c'est pas à moi de le faire x))
+
+différents cas dans la recusrions : 
+-vide = O(0)
+-sinon = 0(n!) à cause du @ recreant une liste complete et tout le tralala 
+
+Conclusion : complexité quadratique qui aurait pu etre evitable
+
+-I : complexité 
+Notons p la complexité du prédicat, on aura une complexité linéaire de O(np) plus dans le pire des cas n soit un total de complexité de l'ordre de O(n(p+1)) = O(np) ce qui est compliqué de faire beaucoup plus faible.
+
+-M : terminaison 
+Variant de boucle, taille l1 + taille l2, chaque tours ca fait -2 car on prend que la fin de chaque liste. Si on arrive à 0 c'est que les deux listes sont vide = cas d'arret et y a de potentiels cas d'arret plus tot. (On peut toute fois relever que y a des cas d'erreur mais tkt c'est pas ce qui est demandé dans ma partie.
+
+-O : terminaison et complexité 
+variant de boucle : taille de l1. Chaque tours, on "retir" le premier élément donc le variant fait -1  à chaque tours et quand ca arrive à 0 ca veut dire la liste est vide = cas d'arret. 
+EN supposant :: come l'opperation élémentaire on le fait pour chaque sous listes de l donc complexité de de O(n)
+(apres bon on va pas se mentir ca fonctionne pas on suppose que ca fait comme le @ et que l2 = [] pour que ca fonctionne
+
+-Q : terminaison 
+*Terminaison de ap :
+	variant : v=taille de l1 >=0
+	cahque tour de boucle : on le rappel sur la meme liste sans le premier élément donc à chaque tours,  v-=1. Lorsque v = 0 <=> l1 = [] ce qui est un cas d'arret. CQFD
+
+*Terminaison de app :
+	variant : v = taille de l1 >=0
+	décroissance stricte : chaque tours de boucle, il s'appelle sur lui meme sans le premier élément, donc a chaque tours v-=1. Lorsque v = 0 <=> l1 = [] ce qui est un cas d'arret CQFD
+
+
+
+

@@ -1,0 +1,87 @@
+complexité fonction A :
+On suppose la correction et la terminaison du programme
+deux cas :
+- n <= 2^(exposant) -> O(0)
+- sinon -> 0(1) et appel suivant, avec une comparaison inutile car déjà vérifiée précédemment
+
+conclusion : complexité de 0(log(n)) car la fonction peut être terminée au premier appel
+	     par contre des éléments inutiles sont intégrés, augmentant la complexité 
+
+
+complexité fonction B :
+On suppose la correction et la terminaison du programme
+si on considère les opérations de modification de liste et les affectations comme opérations élémentaires
+on entre dans une boucle conditionnelle dans laquelle on retire un élément de la liste (donc 0(2))
+cette boucle est active pour (taille(l)-5) tours, donc 0(n) tours
+
+conclusion ; complexité de 0(n) car il y a des cas de terminaison immédiate
+
+
+correction fonction C :
+la fonction est annoncée comme récursive mais ne s'appelle pas elle-même, donc elle déclenchera une erreur
+
+si on considère la fonction sans la mention rec :
+on initialise deux listes, puis on entre dans une boucle conditionnelle
+soit l'invariant "si il y a des éléments dans les listes b et c, les éléments d'indice pair de la liste originelle
+sont tous dans la liste b et les éléments d'indice impairs sont dans la liste c et dans le même ordre "
+quand i = 0, les listes b et c sont vides donc l'invariant est satisfait
+- si i est pair, on ajoute l'élément d'indice i de la liste originelle à la fin de la liste b, donc l'invariant est satisfait
+- si i est impair, on ajoute l'élément d'indice i de la liste originelle à la fin de la liste c, donc l'invariant est satisfait
+quelque soit la valeur de i, l'invariant est satisfait, donc la fonction (sans la mention rec) renvoie bien un couple avec
+dans la première liste les éléments d'indice pair de la liste originelle et dans la deuxième les éléments d'indices impairs dans le même ordre.
+
+
+correction fonction D :
+la fonction comprend une fonction récursive, avec en argument k, que l'on peut assimiler à un vérificateur de parité,
+x l'indice de l'élément observé et une liste
+soit l'invariant "si il y a des éléments dans la liste en arguments, si son indice est pair, il est envoyé dans la premiere liste du couple
+sinon, il est envoyé dans la deuxième liste du couple dans le même ordre"
+on considère k = 0 :
+deux possibilités :
+- si la liste en argument est vide on renvoie une liste vide et alors l'invariant est respecté
+- si la liste n'est pas vide, on vérifie la parité de x, si x est pair, on ajoute le premier élément de la liste au début de la liste renvoyée 
+									puis on appelle la fonction avec le reste de la liste en paramètre
+					donc l'invariant est respecté
+							si x est impair, on ajoute pas le premier élément de la liste au début de la liste renvoyée
+									puis on appelle la fonction avec le reste de la liste en paramètre
+					donc l'invariant est respecté
+et symétriquement pour k = 1, donc à chaque appel de la fonction, l'invariant est respecté, donc aux 0 0 liste renvoie les éléments d'indice pair de la liste
+et aux 1 0 liste renvoie les éléments d'indice impair de la liste, donc le couple renvoyé est correct
+
+
+complexité fonction H :
+on considère la complexité du prédicat comme O(1)
+on considère la correction et la terminaison du programme
+on prendra en compte les additions et les comparaisons comme opérations élémentaires
+à chaque appel 2 possibilités :
+- la liste est vide -> O(1)
+- la liste n'est pas vide -> si le prédicat est vrai : O(1) et appel suivant, avec une comparaison inutile ( pred(a) renvoie déjà un booléen ) 
+			     si le prédicat est faux : O(1) et appel suivant, avec une somme inutile ( 0+ sommesi = sommesi ) 
+conclusion : complexité de O(3n) alors qu'en retirant les comparaisons et sommes, on pourrait avoir une complexité de O(2n) 
+
+
+correction fonction J :
+la premiere partie de la fonction étant itérative, elle est simple à prouver.
+on définit la moitié en fonction de la parité de la longueur de la liste.
+on definit ensuite n comme le résultat de l'appel de la sous-fonction recursive combien
+
+
+
+correction fonction L :
+la fonction L est définie comme récursive alors qu'elle ne s'appelle pas elle même.
+
+
+
+complexité fonction P :
+la complexité est artificiellement augmentée par l'utilisation de @ au lieu de ::
+la complexité est de l'ordre de teta(n²) car à chaque nouveau caractère, on recrée une liste avec les anciens éléments de la liste
+
+
+
+
+ 
+
+
+
+
+

@@ -9,7 +9,7 @@ let tables (n: int): (int * int) =
 	| a when a = 2 -> (n/4 + 2, -2)
 	| a when a = 3 -> (n/4, 1);;
 
-
+-
 
 (* Exercice 51 *)
 let q1 (a: 'a array): 'a array =
@@ -22,7 +22,7 @@ let q1 (a: 'a array): 'a array =
 
 (* Exercice 52 *)
 let minecart (tab: int array): int = 
-	let abs a = if a < 0 then -a else a in let min = ref abs(tab.(0)) in 
+	let abs a = if a < 0 then -a else a in let min = ref (abs (tab.(0))) in 
 	Array.iteri (fun i el -> if abs(el - i) < !min then min := abs(el - i)) tab;
 	!min;;
 
@@ -124,3 +124,71 @@ let decomp n = let get_next_prime n = let next = ref (n+1) in let is_prime num =
 
 
 (* Exercice 59 *)
+(* Incompréhensible, j'ai implémenté un compteur de point de la scopa à la place *)
+
+type couleur = Epee | Massue | Vase | Or;;
+type valeur = Roi | Dame | Cavalier | Sept | Nombre of int;;
+type carte = {valeur : valeur ; couleur : couleur ; upside: bool};;
+
+let valeur_pile (pile: carte array): int * int * int = 
+	let sette = ref 0 in
+	let valeur_totale = ref 0 in
+	let points = ref 0 in
+	let oro = ref 0 in
+	Array.iter (fun carte -> 
+		(match carte.valeur with
+		| Roi | Dame | Cavalier -> valeur_totale := !valeur_totale + 10
+		| Sept -> (match carte.couleur with | Or -> incr points |_ -> ()); valeur_totale := !valeur_totale + 7; incr sette
+		| Nombre(a) -> valeur_totale := !valeur_totale + a);
+
+		(match carte.couleur with | Or -> incr oro |_ -> ());
+
+		if carte.upside then incr points;
+
+		) pile ;
+	if !sette >= 3 then incr points;
+	(!points, !valeur_totale, !oro);;
+	
+
+let gagnant (jeux: (int*int*int) array ): int = 
+	let max_ind_valeur = ref 0 in
+	let max_ind_oro = ref 0 in
+	let points = Array.make (Array.length jeux) 0 in
+	Array.iteri (fun i pile -> (match pile with
+	| (pts, valeur_tot, oro) -> 
+	(if valeur_tot > (match jeux.(!max_ind_valeur) with | (_, tot, _) -> tot) then 
+	max_ind_valeur := i);
+	(if oro > (match jeux.(!max_ind_oro) with | (_, _, oro_other) -> oro_other) then 
+	max_ind_oro := i);
+	points.(i) <- pts)
+	) jeux;
+	points.(!max_ind_valeur) <- points.(!max_ind_valeur) + 1;
+	points.(!max_ind_oro) <- points.(!max_ind_oro) + 1;
+	let gagnant = ref 0 in
+	(*Array.fold_left (fun acc el -> if points.(el) > points.(acc) then el else acc) 0 points;;*)
+	Array.iteri (fun i el -> if el > points.(!gagnant) then gagnant := i) points;
+	!gagnant;;
+	
+let joueur1 = [|
+  {valeur = Sept ; couleur = Or; upside = false}; 
+  {valeur = Roi ; couleur = Vase; upside = false}; 
+  {valeur = Nombre 5 ; couleur = Epee; upside = true};
+  {valeur = Dame ; couleur = Massue; upside = false};
+  {valeur = Nombre 2 ; couleur = Or; upside = false}
+|];;
+
+let joueur2 = [|
+  {valeur = Cavalier ; couleur = Massue; upside = true}; 
+  {valeur = Nombre 4 ; couleur = Epee; upside = true};
+  {valeur = Nombre 6 ; couleur = Vase; upside = false};
+  {valeur = Sept ; couleur = Massue; upside = false};
+  {valeur = Nombre 3 ; couleur = Or; upside = false}
+|];;
+
+let valeur_joueur1 = valeur_pile joueur1;;
+let valeur_joueur2 = valeur_pile joueur2;;
+
+
+let resultat = [|valeur_joueur1; valeur_joueur2|];;
+
+let gagnant_partie = gagnant resultat;;

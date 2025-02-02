@@ -1,5 +1,5 @@
-#include <stdbool.h>
 #include <math.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -105,6 +105,7 @@ Couple tables(int n)
         exit(1);
     }
 
+    // Check for every b value from 0 to 3
     for (int b = 0; b <= 3; b += 1)
     {
         int t = n - 3 * b;
@@ -118,15 +119,18 @@ Couple tables(int n)
 // Exercice 51
 double* q1(double* table, int size)
 {
-    if (!(size % 4 == 1))
+    if (!(size % 4 == 1) || size < 5)
     {
-        printf("Erreur, la taille du tableau doit être de la forme 4n + 1\n");
+        printf("Erreur, la taille du tableau doit être de la forme 4n + 1");
+        printf(" avec n un entier naturel non nul\n");
         exit(1);
     }
 
+    // allocate memory for the quartile table
     int n = (size - 1) / 4;
     double* quartile = malloc(n * sizeof(double));
 
+    // set the quartile values and return the table
     for (int i = 0; i < n; i += 1) quartile[i] = table[i];
     return quartile;
 }
@@ -134,6 +138,7 @@ double* q1(double* table, int size)
 // Exercice 52
 int minecart(int* table, int size)
 {
+    // set initial gap to the first element
     int gap = abs(table[0]);
 
     for (int i = 0; i < size; i += 1)
@@ -163,6 +168,7 @@ int* premiercommeavant(int* table, int size)
 
     for (int i = 1; i < size; i += 1)
     {
+        // Check if the first element is the same as the second
         if (table[i] == table[i - 1])
         {
             t[0] = i; t[1] = i - 1;
@@ -219,14 +225,15 @@ int premierabsent(int* table, int size)
 // Exercice 57
 int rpz(char* s)
 {
-    // "moselle" => 7 letters
+    // "moselle" => 7 letters (3 + 2*"e" + 2*"l")
 
     // set string to lowercase
     for (int i = 0; s[i] != '\0'; i += 1)
         if (s[i] >= 'A' && s[i] <= 'Z') s[i] = s[i] + 32;
 
-    int counts[] = { 0, 0, 0, 0, 0, 0, 0 };
+    int counts[] = { 0, 0, 0, 0, 0 };
 
+    // :p
     for (int i = 0; s[i] != '\0'; i += 1)
     {
         if (s[i] == 'm') counts[0] += 1;
@@ -234,13 +241,16 @@ int rpz(char* s)
         if (s[i] == 's') counts[2] += 1;
         if (s[i] == 'e') counts[3] += 1;
         if (s[i] == 'l') counts[4] += 1;
-        if (s[i] == 'l') counts[5] += 1;
-        if (s[i] == 'e') counts[6] += 1;
     }
 
+    // halve the count of "e" and "l"
+    counts[3] /= 2;
+    counts[4] /= 2;
+
+    // get the minimum count
     int min = counts[0];
 
-    for (int i = 1; i < 7; i += 1)
+    for (int i = 1; i < 5; i += 1)
         if (counts[i] < min) min = counts[i];
 
     return min;
@@ -288,7 +298,7 @@ int main()
 {
     // Common variables
     double table1[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 1.0, 1.1, 1.2, 1.3 }; // 51
-    int table2[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 1.0, 1.1, 1.2, 1.3 };    // 52
+    int table2[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 };        // 52
     int table3[] = { 1, 2, 3, 1, 2, 4, 1, 2, 3, 1, 2 };                  // 53
     int table4[] = { 1, 2, 3, 2, 42, 42, 8, 8 };                         // 54, 55
 
@@ -329,7 +339,7 @@ int main()
     printf("Exercice 56 : %d\n", absent);
 
     // Exercice 57
-    int min = rpz("moselle elle somme loles 42 = 57");
+    int min = rpz("moselle elle somme lol es 42 = 57");
     printf("Exercice 57 : %d\n", min);
 
     // Exercice 58

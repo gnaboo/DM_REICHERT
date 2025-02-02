@@ -1,7 +1,7 @@
 // #include les machins
 
 
-int* tables(int n) {
+/*int* tables(int n) {
     assert(n >= 6);
 
     int* ret = malloc(sizeof(int) * 2);
@@ -27,4 +27,4 @@ int* tables(int n) {
     }
 
     return ret;
-}
+}*/

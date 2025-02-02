@@ -2,15 +2,21 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 // Structures
 struct Couple { int a; int b; };
+
+struct Card { char* value; char* color; };
 
 struct HashNode { int key; int count; struct HashNode* next; };
 struct HashTable { int size; struct HashNode** buckets; };
 
 // Typedefs
 typedef struct Couple Couple;
+
+typedef struct Card Card;
+
 typedef struct HashNode HashNode;
 typedef struct HashTable HashTable;
 
@@ -117,27 +123,28 @@ Couple tables(int n)
 }
 
 // Exercice 51
-double* q1(double* table, int size)
+double q1(double* table, int size)
 {
-    if (!(size % 4 == 1) || size < 5)
+    if (!(size % 4 == 1)) // en soit, le premier quartile d'un singleton est lui-même
     {
-        printf("Erreur, la taille du tableau doit être de la forme 4n + 1");
-        printf(" avec n un entier naturel non nul\n");
+        printf("Erreur, la taille du tableau doit être de la forme 4k + 1");
         exit(1);
     }
 
-    // allocate memory for the quartile table
+    // return the fist quartile
     int n = (size - 1) / 4;
-    double* quartile = malloc(n * sizeof(double));
-
-    // set the quartile values and return the table
-    for (int i = 0; i < n; i += 1) quartile[i] = table[i];
-    return quartile;
+    return table[n];
 }
 
 // Exercice 52
 int minecart(int* table, int size)
 {
+    if (size < 1)
+    {
+        printf("Erreur, la taille du tableau doit être supérieure ou égale à 1\n");
+        exit(1);
+    }
+
     // set initial gap to the first element
     int gap = abs(table[0]);
 
@@ -166,13 +173,16 @@ int* premiercommeavant(int* table, int size)
     int* t = malloc(2 * sizeof(int));
     t[0] = -1; t[1] = -1;
 
-    for (int i = 1; i < size; i += 1)
+    // pas le courage de faire mieux
+    for (int i = 0; i < size; i += 1)
     {
-        // Check if the first element is the same as the second
-        if (table[i] == table[i - 1])
+        for (int j = 0; j < i; j += 1)
         {
-            t[0] = i; t[1] = i - 1;
-            break;
+            if (table[i] == table[j])
+            {
+                t[0] = i; t[1] = j;
+                return t;
+            }
         }
     }
 
@@ -184,6 +194,9 @@ bool equilibre(int* table, int size)
 {
     // This function is implemented with an hash table
     // An other way to implement it, could be to sort the table before counting the elements
+
+    // trivial case
+    if (size < 1) return !0;
 
     HashTable* hash_table = create_table(size);
 
@@ -213,29 +226,40 @@ int premierabsent(int* table, int size)
 {
     if (size == 0) return 0;
 
-    // get the lowest natural integer missing in the table
-    int min = table[0];
+    // start by geting every different values in an hash map
+    HashTable* hash_table = create_table(size);
 
-    for (int i = 1; i < size; i += 1)
-        if (table[i] < min) min = table[i];
+    // Insert all elements into the hash table
+    for (int i = 0; i < size; i += 1)
+        insert_or_update_table(hash_table, table[i], 1);
 
-    return (min > 0) ? 0 : min - 1;
+    // Find the smallest missing natural number
+    for (int i = 0; i <= size; i += 1)
+    {
+        if (get_count(hash_table, i) == 0)
+        {
+            free_table(hash_table);
+            return i;
+        }
+    }
+
+    free_table(hash_table);
+    return size + 1;
 }
 
 // Exercice 57
 int rpz(char* s)
 {
-    // "moselle" => 7 letters (3 + 2*"e" + 2*"l")
-
-    // set string to lowercase
-    for (int i = 0; s[i] != '\0'; i += 1)
-        if (s[i] >= 'A' && s[i] <= 'Z') s[i] = s[i] + 32;
-
+    // start counting
     int counts[] = { 0, 0, 0, 0, 0 };
 
     // :p
     for (int i = 0; s[i] != '\0'; i += 1)
     {
+        // lowercase sensitive prevention:
+        if (s[i] >= 'A' && s[i] <= 'Z') s[i] = s[i] + 32;
+
+        // count
         if (s[i] == 'm') counts[0] += 1;
         if (s[i] == 'o') counts[1] += 1;
         if (s[i] == 's') counts[2] += 1;
@@ -265,15 +289,18 @@ int* decomp(int n)
         exit(1);
     }
 
-    int* decomp = malloc((n - 1) * sizeof(int));
-    for (int i = 0; i < n - 1; i += 1) decomp[i] = 0;
+    // init array
+    int* decomp = malloc(n * sizeof(int));
+
+    decomp[0] = 0;
+    for (int i = 0; i < n - 1; i += 1) decomp[i + 1] = 0;
 
     int j = 0;
 
     // start by decomposing by 2 (even numbers)
     while (n % 2 == 0)
     {
-        decomp[j] = 2;
+        decomp[j + 1] = 2;
         j++; n /= 2;
     }
 
@@ -282,16 +309,58 @@ int* decomp(int n)
     {
         while (n % i == 0)
         {
-            decomp[j] = i;
+            decomp[j + 1] = i;
             j++; n /= i;
         }
     }
+
+    // set the final size for decomp
+    decomp[0] = j+1; // counting the size as a whole complete element to avoid issues
 
     return decomp;
 }
 
 // Exercice 59
-// Non
+int evaluationHL(Card hand[13])
+{
+    // Card values
+    char* colors = "PCKT"; // Pique, Coeur, Carreau, Trèfle
+
+    // High Card Points
+    int H = 0;
+    int color_points[4] = { 0, 0, 0, 0 };
+
+    for (int i = 0; i < 13; i += 1)
+    {
+        if (strcmp(hand[i].value, "A") == 0) H += 4;
+        if (strcmp(hand[i].value, "R") == 0) H += 3;
+        if (strcmp(hand[i].value, "D") == 0) H += 2;
+        if (strcmp(hand[i].value, "V") == 0) H += 1;
+
+        // count the number of cards for each color
+        for (int j = 0; j < 4; j += 1)
+        {
+            if (strcmp(hand[i].color, &colors[j]) == 0)
+            {
+                color_points[j] += 1;
+                break;
+            }
+        }
+    }
+
+    // je calcule comme j'ai vu qu'on faisait
+    // mais j'ai pas compris l'histoire d'importance de l'attribution des "L"
+    int L = 0;
+
+    for (int i = 0; i < 4; i += 1)
+    {
+        if (color_points[i] <= 5) L += 1;
+        else if (color_points[i] == 6) L += 2;
+        else if (color_points[i] >= 7) L += 3;
+    }
+
+    return H + L;
+}
 
 // Tests
 int main()
@@ -307,12 +376,8 @@ int main()
     printf("Exercice 50 : %d %d\n", tab50.a, tab50.b);
 
     // Exercice 51
-    double* quartile = q1(table1, 13);
-
-    printf("Exercice 51 : ");
-    print_array_float(quartile, 3);
-
-    free(quartile);
+    double quartile = q1(table1, 13);
+    printf("Exercice 51 : %f\n", quartile);
 
     // Exercice 52
     int gap = minecart(table2, 13);
@@ -339,20 +404,27 @@ int main()
     printf("Exercice 56 : %d\n", absent);
 
     // Exercice 57
-    int min = rpz("moselle elle somme lol es 42 = 57");
+    int min = rpz("moselle elle se somme lol 42 = 57");
     printf("Exercice 57 : %d\n", min);
 
     // Exercice 58
     int* decomp58 = decomp(42);
 
     printf("Exercice 58 : ");
-    for (int i = 0; i < 41 && decomp58[i] != 0; i += 1) printf("%d ", decomp58[i]);
-    printf("\n");
+    print_array_int(decomp58, decomp58[0]);
 
     free(decomp58);
 
     // Exercice 59
-    // Juste non quoi
+    Card hand[13] = {
+        {"A", "P"}, {"R", "P"}, {"D", "P"}, {"V", "P"}, {"10", "P"},
+        {"9", "C"}, {"8", "C"}, {"7", "C"}, {"6", "C"},
+        {"5", "K"}, {"4", "K"},
+        {"3", "T"}, {"2", "T"}
+    };
+
+    int points = evaluationHL(hand);
+    printf("Exercice 59 : %d\n", points);
 
     return 0;
 }

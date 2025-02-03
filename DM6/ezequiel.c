@@ -131,6 +131,22 @@ double q1(double* table, int size)
         exit(1);
     }
 
+    // sort the given array
+    for (int i = 0; i < size - 1; i++) {
+        int minIndex = i;
+
+        for (int j = i + 1; j < size; j++)
+            if (table[j] < table[minIndex])
+                minIndex = j;
+
+        if (minIndex != i)
+        {
+            double temp = table[i];
+            table[i] = table[minIndex];
+            table[minIndex] = temp;
+        }
+    }
+
     // return the fist quartile
     int n = (size - 1) / 4;
     return table[n];

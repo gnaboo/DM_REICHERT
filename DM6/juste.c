@@ -1,4 +1,4 @@
-#include <math.h>
+/*#include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -234,4 +234,4 @@ int evaluationHL(Card hand[13])
     }
 
     return H + L;
-}
+}*/

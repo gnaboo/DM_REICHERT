@@ -118,6 +118,18 @@ let miroirlc (lcv: 'a lc) =
 
 
 
+(* Exercice 65 *)
+let sommeminmax (arr: int array) : int =
+  Array.fast_sort (fun x y -> x - y) arr;
+  let counter = ref 0 in
+  for i = 0 to (Array.length arr - 1) do
+  	if i mod 2 = 0 then counter := !counter + (max (arr.(i)) (arr.(i+1)));
+  done;
+  !counter;;
+
+
+
+
 
 (* Exercice 66 *) 
 
@@ -155,17 +167,23 @@ let niederschaeffolsheim (str: string) : int =
 
 (* Exercice 68 *) (* COMPILE *)
 let is_prime num = if num mod 2 = 0 then num = 2
-  else begin
-    let rec aux counter = 
-      if num = counter then true
-      else (num mod counter <> 0) && aux (counter+2)
-    in num <> 1 && aux 3; (* optimisable avec l'algo de Rabin - Miller... *)
-  end;;
-  
+else begin
+  let rec aux counter = 
+    if num = counter then true
+    else (num mod counter <> 0) && aux (counter+2)
+  in num <> 1 && aux 3; (* optimisable avec l'algo de Rabin - Miller... *)
+end;;
+
 let stringify car = String.make 1 car;;
-  
+
 let kneckes (str: string) : string = 
+  let compteur = ref 0 in
   let new_str = ref "" in
-  String.iteri (fun i el -> (if is_prime i && el = ' ' then new_str := !new_str ^ "hopla"); 
-                 new_str := !new_str ^ (stringify el)) str;
+  String.iter (fun el -> 
+      if el = ' ' then (
+        incr compteur;
+        if is_prime !compteur then new_str := !new_str ^ " hopla"
+      );
+      new_str := !new_str ^ (stringify el)
+    ) str;
   !new_str;;

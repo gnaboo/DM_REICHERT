@@ -18,6 +18,16 @@ typedef struct Iterator Iterator;
 typedef struct HashNode HashNode;
 typedef struct HashTable HashTable;
 
+// Toujours différent des autres celui-là
+struct Card { char* value; char* color; };
+typedef struct Card Card;
+
+struct CribbageHand { // exo 69
+    Card hand[4];  // player's hand
+    Card annex[4]; // player's annex
+};
+typedef struct CribbageHand CribbageHand;
+
 // Utils
 void print_array_int(int* array, int size)
 {
@@ -195,7 +205,7 @@ int mcnuggets(int a, int b) // O(min(a,b))
 {
     // Use Frobenius number theorem (McNugget numbers) to simplify the problem
     // Check if the number is a McNugget number and return it
-    if (gcd(a, b) == 1) return a * b - a - b;
+    if (a != 1 && b != 1 && gcd(a, b) == 1) return a * b - a - b;
 
     // Otherwise, error (infinite case)
     printf("Error: infinite case\n");
@@ -246,6 +256,12 @@ bool simplifiable(Fraction* t, int size) // O(n^2)
     for (int i = 0; i < size; i += 1)
     {
         Fraction f1 = t[i];
+
+        if (f1.den == 0)
+        {
+            printf("Error: division by zero\n");
+            exit(1);
+        }
 
         for (int j = 0; j < size; j += 1)
         {
@@ -300,7 +316,7 @@ int sommeminmax(int* t, int size)
 
     // Free the sorted array and return the wanted value
     int sum = 0;
-    for (int i = 0; i < size; i += 2) sum += sorted[i];
+    for (int i = 0; i < size; i += 2) sum += sorted[i + 1];
 
     free(sorted);
 
@@ -524,6 +540,14 @@ char* kneckes(char* s)
     return result;
 }
 
+// Exercice 69 :
+int crib(CribbageHand hand)
+{
+    // la réponse à la question universelle est la réponse à tout
+    // et crib est inclus dans tout
+    return 42;
+}
+
 // Tests
 int main()
 {
@@ -605,6 +629,10 @@ int main()
     printf("Exercice 68 : %s\n", s6); free(s6);
     printf("Exercice 68 : %s\n", s7); free(s7);
     printf("\n");
+
+    // Exercice 69
+    CribbageHand hand_test = { {{'5', 'P'}, {'5', 'C'}, {'5', 'K'}, {'5', 'T'}}, {'J', 'C'} };
+    printf("Exercice 69 : %d\n", crib(hand_test));
 
     return 0;
 }

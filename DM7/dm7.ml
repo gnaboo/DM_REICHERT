@@ -13,7 +13,7 @@ let pgcd fst scn =
 
 let mcnuggets a b = 
   if pgcd a b = 1 then failwith "Il n'existe pas de nombre de mcnuggets";
-  a*b-b-a;;
+  a * b -b -a;;
 
 
 
@@ -51,7 +51,7 @@ let simplifiable (tab: fraction array) : bool = (* O(n^2) si jamais on fait chaq
 		if not !result then
 		begin		
 		for y = (i+1) to (Array.length tab -1) do
-			result := tab.(i).denom * tab.(y).denom <> 0 && is_same (tab.(i).nom) (tab.(y).nom) (tab.(i).denom) (tab.(y).denom) 
+			result := tab.(i).denom * tab.(y).denom <> 0 && is_same (tab.(i).nom) (tab.(y).nom) (tab.(i).denom) (tab.(y).denom)
 		done;
 		end
 	done;
@@ -60,34 +60,11 @@ let simplifiable (tab: fraction array) : bool = (* O(n^2) si jamais on fait chaq
 (* Exercice 64 *)
 type 'a lc = { mutable tete : 'a option; mutable suivant : 'a lc option };;
 let creer_lc() = { tete = None; suivant = None };;
-let tete_lc l = (* Résidu d'une consigne étendue retirée entre temps. *)
-  match l.tete with
-  | None -> failwith "Liste chaînée vide"
-  | Some a -> a;;
-
-let modif_tete_lc l x = (* Idem *)
-  match l.tete with
-  | None -> failwith "Liste chaînée vide"
-  | Some a -> l.tete <- Some x;;
-
-let queue_lc l = (* Idem *)
-  match l.tete, l.suivant with
-  | None, _ -> failwith "Liste chaînée vide"
-  | _, None -> creer_lc ()
-  | _, Some reste -> reste;;
-
 let rec taille_lc l =
   match l.tete, l.suivant with
   | None, _ -> 0
   | _, None -> 1
   | _, Some reste -> 1 + taille_lc reste;;
-
-let rec acces_lc l i =
-  match i, l.tete, l.suivant with
-  | _, None, _ -> failwith "Liste chaînée vide"
-  | 0, Some a, _ -> a
-  | _, _, None -> failwith "Liste chaînée trop courte"
-  | _, _, Some reste -> acces_lc reste (i-1);;
 
 let rec inserer_lc l i x =
   match i, l.tete, l.suivant with
@@ -99,26 +76,28 @@ let rec inserer_lc l i x =
   | _, _, None -> failwith "Liste chaînée trop courte"
   | _, _, Some reste -> inserer_lc reste (i-1) x;;
 
-let rec retirer_lc l i =
-  match i, l.tete, l.suivant with
-  | _, None, _ -> failwith "Liste chaînée vide"
-  | 0, _, None -> l.tete <- None
-  | 0, _, Some { tete = a; suivant = b } -> l.tete <- a; l.suivant <- b
-  | _, _, None -> failwith "Liste chaînée trop courte"
-  | _, _, Some reste -> retirer_lc reste (i-1);;
-
-
 
 
 let miroirlc (lcv: 'a lc) = 
-  let new_lc = creer_lc in
-  while(lcv.)
+  let taille = taille_lc lcv in
+  match taille with 
+  | a when a < 1 -> creer_lc ()
+  | size -> 
+    let new_lc = creer_lc () in
+    let next = ref lcv in
+    for i = 0 to (size - 1) do
+      inserer_lc new_lc i (!next.tete);
+      next := (match !next.suivant with | Some s -> s | _ -> failwith "Suicide toi");
+    done;
+    new_lc;;
+      
 
 
 
 
 
-(* Exercice 65 *)
+
+(* Exercice 65 *) (* COMPILE *)
 let sommeminmax (arr: int array) : int =
   Array.fast_sort (fun x y -> x - y) arr;
   let counter = ref 0 in
@@ -129,21 +108,32 @@ let sommeminmax (arr: int array) : int =
 
 
 
+(* Exercice 66 *)  (* PAS TERMINé !*)
 
+let medianefreq (tab: 'a' array) : int =
+  let size = Array.length tab in
+  if size = 0 then failwith "Vive la Belgique"
 
-(* Exercice 66 *) 
-
-let medianefreq (tab: politique array) : int =
-  let arr = Array.map gauche tab in
   let tbl = Hashtbl.create in
   Array.iteri (fun i el -> Hashtbl.replace tbl el (match Hashtbl.find_opt tbl el with
   | Some((a, ind)) -> (a + 1, ind + i)
   | None -> (1, i)
-  ));
-  let freq_max_el = Hashtbl.fold (fun acc _ value -> min acc value) in
+  )) tab;
+
+  let freq_max_el = Hashtbl.fold (fun acc _ value -> match acc, value with
+  | Some(acc_val, acc_ind), Some(val_val, val_ind) -> if val_val >= acc_val then (if val_ind > acc_ind then value else acc) else acc
+  ) (Hashtbl.find tbl (tab.(0))) tbl 
+
+  in
+
   let abis = Array.make (Array.length tab) 0 in
+
   Array.iteri (fun i el -> if el = freq_max_el then abis.(i) = i);
+
   abis = Array.map (fun el -> el <> 0) abis;
+
+
+
 
 
 
@@ -187,3 +177,73 @@ let kneckes (str: string) : string =
       new_str := !new_str ^ (stringify el)
     ) str;
   !new_str;;
+
+
+(* Exercice 69 (jolie nombre) *)
+let kakaboudin (arr: int array) : int =
+  Array.fast_sort (fun x y -> x - y) arr;
+  let counter = ref 0 in
+  for i = 0 to (Array.length arr - 1) do
+  	if i mod 2 = 0 && then counter := !counter + (max (arr.(i)) (arr.(i+1)));
+  done;
+  !counter;;
+
+
+let crib (main: carte array) : int = 
+  let main = [|main.(0) ; main.(1); main.(2); main.(3); extra|] in
+  let pts = ref 0 in
+
+  let ctr = ref 0 in
+  let dupl = Hashtbl.create in
+  Array.iter (fun el -> Hashtbl.replace tbl el (match Hashtbl.find_opt tbl el with
+  | None -> 1
+  | Some a -> a + 1
+  )) tab;
+
+  Hashtbl.iter (fun key val -> if val < 2 then Hashtbl.remove tbl key)
+
+  (* 15 *)
+
+  let dupl_in_15 = ref 0 in
+  let added = ref [] (* j'en ai plus rien à foutre, O(4) = O(1) = O(Ackermann(42, 42)) *)
+
+  let new_arr = Array.init (fun el -> ctr := ctr + el; added := (el::(!added))
+    if !ctr = 15 then (List.iter (!added) (fun el -> if Array.mem dupl el then incr dupl_in_15); !added = []; 0) 
+    else !ctr mod 15) main in
+
+  let tbl = Hashtbl.create in
+
+  Array.iter (fun el -> Hashtbl.replace tbl el (match Hashtbl.find_opt tbl el with
+  | None -> 1
+  | Some a -> a + 1
+  )) tab;
+
+  let sum = Hashtbl.fold (fun acc _ val -> acc + val) 0 tbl in
+  pts := (sum + !dupl_in_15) * 15;
+
+  (* SUITE *)
+
+  let length = ref 0 in
+  Array.fast_sort (fun x y -> x - y) main;
+  
+  for i = 0 to 4 do
+    for y = i+1 to 4 do
+      if not(y-!length < 3) then
+        (
+          if 
+
+
+
+        )
+  
+  
+
+
+
+
+
+
+
+
+
+

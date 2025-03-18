@@ -256,7 +256,7 @@ bool idem(int* t, int size)
 int nombrediviseurs(int n)
 {
     if (n < 1) return 0; // n must be a postive non-zero integer
-    if (n == 1) return n;
+    if (n == 1) return 1;
 
     int sqrt_n = sqrt(n); // check if we can use this function
     int count = 0;
@@ -288,7 +288,8 @@ char* ptm(int n)
     // Fill the answer string
     for (int i = 1, j = 1; i <= length; i += 1)
     {
-        if (i >> 1 == j) j <<= 1;
+        // v1: if (i >> 1 == j) j <<= 1;
+        if (i == j*2) j *= 2;
         str[i] = '1' - (str[i - j] - '0');
     }
 

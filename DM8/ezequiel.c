@@ -46,7 +46,9 @@ void print_polynomial(double* P, int size) {
     bool first = true;
 
     for (int i = start; i < size + start; i++) if (P[i] != 0) {
-        printf("%s%s%g", first ? "" : " ", P[i] < 0 ? "- " : (first ? "" : "+ "), fabs(P[i]));
+        if (first) printf("%s%g", P[i] < 0 ? "-" : "", fabs(P[i]));
+        else printf(" %s %g", P[i] < 0 ? "-" : "+", fabs(P[i]));
+
         first = false;
 
         if (i == 1) printf("*X");

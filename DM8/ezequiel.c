@@ -64,39 +64,9 @@ void print_79(double* A, int sizeA, double* B, int sizeB, double* Q)
     print_polynomial(A, sizeA);
     printf(" = (");
     print_polynomial(B, sizeB);
-    printf(") * (");
+    printf(")(");
     print_polynomial(Q, sizeA - sizeB + 1);
-    printf(") + R\n");
-}
-
-void minMaxPairwise(int arr[], int n, int *min, int *max) {
-    int i = 0;
-
-    if (n % 2 == 0) {
-        bool isMin = arr[0] < arr[1];
-
-        *min = isMin ? arr[0] : arr[1];
-        *max = isMin ? arr[1] : arr[0];
-
-        i = 2;
-    } else {
-        *min = arr[0];
-        *max = arr[0];
-
-        i = 1;
-    }
-
-    while (i < n - 1) {
-        if (arr[i] < arr[i + 1]) {
-            if (arr[i] < *min) *min = arr[i];
-            if (arr[i + 1] > *max) *max = arr[i + 1];
-        } else {
-            if (arr[i + 1] < *min) *min = arr[i + 1];
-            if (arr[i] > *max) *max = arr[i];
-        }
-
-        i += 2;
-    }
+    printf(") + ?\n");
 }
 
 // Tree
@@ -177,6 +147,93 @@ void print_iterator(Iterator* iterator)
     printf("\n");
 }
 
+// HashTable
+HashTable* create_htbl(int size)
+{
+    HashTable* table = malloc(sizeof(HashTable));
+
+    table->buckets = malloc(size * sizeof(HashNode*));
+    table->size = size;
+
+    for (int i = 0; i < size; i += 1) table->buckets[i] = NULL;
+    return table;
+}
+
+int hash_htbl(HashTable* table, int key)
+{
+    // this will be enough for the use we'll make of it... (same as a dict. in this case)
+    return key % table->size;
+}
+
+void insert_htbl(HashTable* table, int key)
+{
+    int index = hash_htbl(table, key);
+
+    HashNode* node = table->buckets[index];
+    HashNode* prev = NULL;
+
+    while (node)
+    {
+        if (node->key == key)
+        {
+            node->count += 1;
+            return;
+        }
+
+        prev = node;
+        node = node->next;
+    }
+
+    HashNode* new_node = malloc(sizeof(HashNode));
+
+    new_node->key = key;
+    new_node->count = 1;
+    new_node->next = NULL;
+
+    if (prev) prev->next = new_node;
+    else table->buckets[index] = new_node;
+}
+
+void free_htbl(HashTable* table)
+{
+    for (int i = 0; i < table->size; i += 1)
+    {
+        HashNode* node = table->buckets[i];
+
+        while (node)
+        {
+            HashNode* next = node->next;
+            free(node);
+
+            node = next;
+        }
+    }
+
+    free(table->buckets);
+    free(table);
+}
+
+void minMaxKeyHtbl(HashTable* table, int* min, int* max)
+{
+    *min = -1;
+    *max = -1;
+
+    for (int i = 0; i < table->size; i += 1)
+    {
+        HashNode* node = table->buckets[i];
+
+        while (node)
+        {
+            int key = node->key;
+
+            if (*min == -1 || key < *min) *min = key;
+            if (*max == -1 || key > *max) *max = key;
+
+            node = node->next;
+        }
+    }
+}
+
 // Functions
 // Exercice 70 :
 bool cycle(int* tab, int size)
@@ -215,7 +272,17 @@ bool idem(int* tab, int size)
 
     // Initialize the answer
     int* t = malloc(size * sizeof(int));
-    for (int i = 0; i < size; i += 1) t[i] = tab[i];
+    for (int i = 0; i < size; i += 1)
+    {
+        t[i] = tab[i];
+
+        // Check if the permutation can be applied
+        if (t[i] >= size || t[i] < 0)
+        {
+            free(t);
+            return false;
+        }
+    }
 
     // Apply the permutation
     for (int i = 1; i < size; i += 1)
@@ -228,6 +295,7 @@ bool idem(int* tab, int size)
         free(temp);
     }
 
+    // Final check
     bool res = true;
 
     for (int i = 0; i < size; i += 1)
@@ -322,7 +390,12 @@ char* elaguer (char* buffer)
 // Exercice 73 :
 int nombrediviseurs(int n)
 {
-    if (n < 1) return 0; // n must be a postive non-zero integer
+    if (n < 1)
+    {
+        printf("Invalid number. Argument must be a positive non-zero integer.\n");
+        exit(1);
+    }
+
     if (n == 1) return 1;
 
     int sqrt_n = sqrt(n); // check if we can use this function
@@ -341,7 +414,7 @@ int maxintersect(int* start, int startSize, int* end, int endSize)
     // Filter invalid inputs
     if (startSize != endSize)
     {
-        printf("Invalid input\n");
+        printf("Invalid input sizes.\n");
         exit(1);
     }
 
@@ -379,8 +452,8 @@ char* ptm(int n)
 {
     if (n < 0)
     {
-        printf("Invalid number\n");
-        return NULL;
+        printf("Invalid number. Argument passed must be a positive integer.\n");
+        exit(1);
     }
 
     // Init answer
@@ -390,9 +463,11 @@ char* ptm(int n)
     str[0] = '0';
 
     // Fill the answer string
-    for (int i = 1, j = 1; i <= length; i += 1)
+    int j = 1;
+
+    for (int i = 1; i <= length; i += 1)   // v1: for (int i = 1, j = 1; i <= length; i += 1)
     {
-        if (i == j*2) j *= 2;                        // v1: if (i >> 1 == j) j <<= 1;
+        if (i == j*2) j *= 2;              // v1: if (i >> 1 == j) j <<= 1;
         str[i] = '1' - (str[i - j] - '0');
     }
 
@@ -403,19 +478,24 @@ char* ptm(int n)
 // Exercice 76 :
 int zerosfact(int n)
 {
-    if (n < 5) return 0;
-
-    // Using the Legendre's formula and knowing that the number
-    // of 2s is always greater than the number of 5s
-
-    int count = 0;
-    int i = 5;
-
-    while (n >= i)      // hmpf, using a `for` loop would have been better >.<
+    if (n < 0)
     {
-        count += n / i;
-        i *= 5;
+        printf("Invalid number. Argument passed must be a positive integer.\n");
+        exit(1);
     }
+
+    // Using the Legendre's formula knowing that the number of 2s
+    // is always greater than the number of 5s in the factorial
+    int count = 0;
+
+    // hmpf, using a `for` loop would have been better >.<
+    // nvm, I'll will do it, and keep the while loop in comment
+
+    // int i = 5;
+    // while (n >= i) { count += n / i; i *= 5; }
+
+    for (int i = 5; i <= n; i *= 5) count += n / i;
+    // he he he
 
     return count;
 }
@@ -472,16 +552,22 @@ int tessiture(char** tab, int size)
     // Always check the trivial cases :O
     if (size < 2) return 0;
 
-    // Convert the notes to indexes
-    int* notes = malloc(size * sizeof(int));
-    for (int i = 0; i < size; i += 1) notes[i] = noteToIndex(tab[i]);
+    // Convert the notes to indexes and store them in an hash table
+    HashTable* notes = create_htbl(size);
+
+    int firstKey = noteToIndex(tab[0]); // will be used later in the code
+    insert_htbl(notes, firstKey);
+
+    for (int i = 1; i < size; i += 1) insert_htbl(notes, noteToIndex(tab[i]));
 
     // Get the min and max values
-    int min = notes[0];
-    int max = notes[0];
+    int firstIndex = hash_htbl(notes, firstKey);
 
-    minMaxPairwise(notes, size, &min, &max);
-    free(notes);
+    int min = notes->buckets[firstIndex]->key;
+    int max = notes->buckets[firstIndex]->key;
+
+    minMaxKeyHtbl(notes, &min, &max);
+    free_htbl(notes);
 
     return max - min; // hehehe, I used the easy way :D
 }
@@ -493,7 +579,7 @@ double* diveucl(double* A, int sizeA, double* B, int sizeB)
     // (sizeA >= sizeB >= 1) <=> (deg(A) >= deg(B) >= 0)
     if (sizeA < sizeB || sizeA < 1 || sizeB < 1 || A[sizeA - 1] == 0 || B[sizeB - 1] == 0)
     {
-        printf("Invalid input\n");
+        printf("Invalid input.\n");
         return NULL;
     }
 
@@ -577,7 +663,7 @@ int main()
     printf("\n");
 
     // Exercice 73
-    int ex73[6] = { 0, 1, 25, 3, 6, 42 };
+    int ex73[6] = { 1764, 1, 25, 3, 6, 42 };
 
     for (int i = 0; i < 6; i += 1)
         printf("Exercice 73 : %d\n", nombrediviseurs(ex73[i]));
@@ -680,4 +766,3 @@ int main()
 // Suite de Prouhet-Thue-Morse : https://fr.wikipedia.org/wiki/Suite_de_Prouhet-Thue-Morse
 // Formule de Legendre (valuation p-adique de la factorielle) : https://fr.wikipedia.org/wiki/Formule_de_Legendre
 // Fonctionnement de `tessiture` : Olympe et Gabriel
-// minMaxPairwise: Astuce de Dany

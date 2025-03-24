@@ -249,7 +249,7 @@ bool cycle(int* tab, int size)
     int i = 0;
     int count = 0;
 
-    while (count < size && t[i] != -1 && t[i] < size && t[i] >= 0)
+    while (count < size && t[i] < size && t[i] >= 0)
     {
         int next = t[i];
 
@@ -398,7 +398,7 @@ int nombrediviseurs(int n)
 
     if (n == 1) return 1;
 
-    int sqrt_n = sqrt(n); // check if we can use this function
+    int sqrt_n = sqrt(n); // TODO: check if we can use this function
     int count = sqrt_n * sqrt_n == n ? -1 : 0;
 
     for (int i = 1; i <= sqrt_n; i += 1)
@@ -489,7 +489,7 @@ int zerosfact(int n)
     int count = 0;
 
     // hmpf, using a `for` loop would have been better >.<
-    // nvm, I'll will do it, and keep the while loop in comment
+    // nvm, I'll do it, and keep the while loop in comment
 
     // int i = 5;
     // while (n >= i) { count += n / i; i *= 5; }
@@ -519,18 +519,18 @@ int hauteurarbre(IntTree* tree)
 // Exercice 78 :
 int noteToIndex(char* note) // input ex: "sol3", "mib1", "fad2"
 {
-    int len = strlen(note);
+    int len = strlen(note) - 1;
 
     char* notes[] = { "do", "dod", "ré", "réd", "mi", "fa", "fad", "sol", "sold", "la", "lad", "si" };
     char* bemols[] = { "do", "réb", "ré", "mib", "mi", "fa", "solb", "sol", "lab", "la", "sib", "si" };
 
     // set the octave (ex: 3, 1, 2)
-    int octave = note[len - 1] - '0';
+    int octave = note[len] - '0';
     // set the note name (ex: "sol", "mib", "fad")
-    char* noteName = malloc(len * sizeof(char));
+    char* noteName = malloc((len + 1) * sizeof(char));
 
-    for (int i = 0; i < len - 1; i += 1) noteName[i] = note[i];
-    noteName[len - 1] = '\0';
+    for (int i = 0; i < len; i += 1) noteName[i] = note[i];
+    noteName[len] = '\0';
 
     int noteIndex = 0;
 

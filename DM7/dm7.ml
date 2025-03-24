@@ -22,10 +22,10 @@ let existesomme (tab: int array) : bool =
   let ret = ref false in
   for i = 0 to (Array.length tab - 1) do
     if(not !ret ) then
-    for y = i+1 to (Array.length tab - 1) do
-      if(not !ret ) then
-      for x = y+1 to (Array.length tab - 1) do
-        if tab.(i) = tab.(y) + tab.(x) then ret := true
+    for y = 0 to (Array.length tab - 1) do
+      if(not !ret && i <> y) then
+      for x = 0 to (Array.length tab - 1) do
+        if y <> x && tab.(i) = tab.(y) + tab.(x) then ret := true
       done;
     done;
   done;
@@ -35,9 +35,11 @@ let existesomme (tab: int array) : bool =
 (* Exercice 62 *) (* COMPILE *)
 let fincommune (str1: string) (str2: string) : int = 
   let counter = ref 0 in
-  let min_len = min (String.length str1) (String.length str2) in
+  let size1 = (String.length str1) in
+  let size2 = (String.length str2) in
+  let min_len = min size1 size2 in
   for i = 0 to (min_len - 1) do
-    if(i = !counter && str1.[i] = str2.[i]) then incr counter
+    if(i = !counter && str1.[size1-i-1] = str2.[size2-i-1]) then incr counter
   done;
   !counter;;
 
@@ -108,29 +110,62 @@ let sommeminmax (arr: int array) : int =
 
 
 
-(* Exercice 66 *)  (* PAS TERMINé !*)
+(* Exercice 66 *)
+let build_frequency_table arr =
+  let table = Hashtbl.create (Array.length arr) in
+  Array.iter (fun x ->
+    let count = Hashtbl.find_opt table x |> Option.value ~default:0 in
+    Hashtbl.replace table x (count + 1)
+  ) arr;
+  table
+;;
 
-let medianefreq (tab: 'a' array) : int =
-  let size = Array.length tab in
-  if size = 0 then failwith "Vive la Belgique"
+let max_frequency table =
+  Hashtbl.fold (fun _ count acc -> max acc count) table 0
+;;
 
-  let tbl = Hashtbl.create in
-  Array.iteri (fun i el -> Hashtbl.replace tbl el (match Hashtbl.find_opt tbl el with
-  | Some((a, ind)) -> (a + 1, ind + i)
-  | None -> (1, i)
-  )) tab;
+let values_with_max_freq table max_freq =
+  Hashtbl.fold (fun key count acc -> if count = max_freq then key :: acc else acc) table []
+;;
 
-  let freq_max_el = Hashtbl.fold (fun acc _ value -> match acc, value with
-  | Some(acc_val, acc_ind), Some(val_val, val_ind) -> if val_val >= acc_val then (if val_ind > acc_ind then value else acc) else acc
-  ) (Hashtbl.find tbl (tab.(0))) tbl 
+let indices_of_value arr value =
+  let indices = Array.fold_left (fun (idxs, i) x -> 
+    if x = value then (i :: idxs, i + 1) else (idxs, i + 1)
+  ) ([], 0) arr in
+  List.rev (fst indices)
+;;
 
+let median_of_sorted_list lst =
+  let len = List.length lst in
+  if len = 0 then None
+  else if len mod 2 = 1 then Some (List.nth lst (len / 2))
+  else Some (List.nth lst ((len / 2) - 1))
+;;
+
+let medianefreq arr =
+  let size = Array.length arr in
+  if size < 3 then 0 else
+  let table = build_frequency_table arr in
+  let max_freq = max_frequency table in
+  let values = values_with_max_freq table max_freq in
+
+  let indexed_values = 
+    List.map (fun v ->
+      let indices = indices_of_value arr v in
+      let sum_indices = List.fold_left ( + ) 0 indices in
+      let median_index = median_of_sorted_list indices |> Option.get in
+      (sum_indices, median_index, v)
+    ) values
   in
 
-  let abis = Array.make (Array.length tab) 0 in
+  let _, min_median, _ = List.fold_left (fun (max_sum, min_med, best_value) (sum, median, value) ->
+    if sum > max_sum then (sum, median, value)
+    else if sum = max_sum && median < min_med then (sum, median, value)
+    else (max_sum, min_med, best_value)
+  ) (0, size, 0) indexed_values in
 
-  Array.iteri (fun i el -> if el = freq_max_el then abis.(i) = i);
-
-  abis = Array.map (fun el -> el <> 0) abis;
+  min_median
+;;
 
 
 
@@ -169,8 +204,9 @@ let stringify car = String.make 1 car;;
 let kneckes (str: string) : string = 
   let compteur = ref 0 in
   let new_str = ref "" in
-  String.iter (fun el -> 
-      if el = ' ' then (
+  let length = String.length str in
+  String.iteri (fun i el -> 
+      if el = ' ' && i+1 <> length then (
         incr compteur;
         if is_prime !compteur then new_str := !new_str ^ " hopla"
       );
@@ -179,67 +215,146 @@ let kneckes (str: string) : string =
   !new_str;;
 
 
-(* Exercice 69 (jolie nombre) *)
-let kakaboudin (arr: int array) : int =
-  Array.fast_sort (fun x y -> x - y) arr;
-  let counter = ref 0 in
-  for i = 0 to (Array.length arr - 1) do
-  	if i mod 2 = 0 && then counter := !counter + (max (arr.(i)) (arr.(i+1)));
-  done;
-  !counter;;
+(* Exercice 69 (jolie nombre) *) (* Ne compile pas, j'ai passé 1h à chercher l'erreur et j'ai pas trouvé...*)
+(* Horriblement long (5h dessus pour même pas finir) et d'une difficulté énorme *)
+(* J'espère que ces efforts seront récompensés *)
+type couleur = Pique | Coeur | Carreau | Trefle;;
+type valeur = A | R | D | V | Autre of string;;
+
+let get_machin_associe_valeur str =
+  match str with
+  | "A" -> A
+  | "R" -> R
+  | "D" -> D
+  | "V" -> V
+  | s   -> Autre s;;
+
+let get_machin_associe_couleur str =
+  match str with
+  | "Pique"   -> Pique  
+  | "Coeur"   -> Coeur
+  | "Carreau" -> Carreau
+  | "Trefle"  -> Trefle
+  | _         -> failwith "Erreur couleur";;
+
+type carte = { valeur : string; couleur : string };;
+
+type carte_mais_simple = {
+  valeur: valeur;
+  couleur: couleur;
+  true_val: int;
+  val_suite: int;
+};;
+
+let val_of_valeur card =
+  match card with
+  | Autre s -> int_of_string s
+  | V | D | R -> 10
+  | A -> 1;;
 
 
-let crib (main: carte array) : int = 
-  let main = [|main.(0) ; main.(1); main.(2); main.(3); extra|] in
+let val_pour_suite card =
+  match card with
+  | Autre("10") -> 10
+  | Autre a -> int_of_string a
+  | V -> 11
+  | D -> 12
+  | R -> 13
+  | A -> 1;;
+
+let combinaisons nombre =
+  match nombre with
+  | 2 -> 2
+  | 3 -> 6
+  | 4 -> 12
+  | _ -> 0;;
+
+let filteri f liste =
+  let rec aux i liste = match liste with
+    | [] -> []
+    | a::other -> if f i a then a::aux (i + 1) other else aux (i + 1) other
+  in
+  aux 0 liste;;
+  
+
+let rec ex_15 valeur_actuelle restant =
+  let count = ref 0 in
+  List.iteri (fun i el ->
+    if (valeur_actuelle + el.true_val) = 15 then incr count
+    else if (valeur_actuelle + el.true_val) < 15 then
+      count := !count + ((List.length (List.filter (fun x -> x.true_val = el.true_val) restant)) * ex_15 (valeur_actuelle + el.true_val) (filteri (fun j _ -> i <> j) restant))
+  ) restant;
+  !count;;
+  
+
+let crib (main: carte array) (extra: carte) : int =
+  let all_cards = Array.append main [|extra|] in
+  let main_simple =
+    Array.map (fun el ->
+      { 
+        valeur    = get_machin_associe_valeur el.valeur;
+        couleur   = get_machin_associe_couleur el.couleur;
+        true_val  = val_of_valeur (get_machin_associe_valeur el.valeur);
+        val_suite = val_pour_suite (get_machin_associe_valeur el.valeur)
+      }
+    ) all_cards in 
+
   let pts = ref 0 in
 
-  let ctr = ref 0 in
-  let dupl = Hashtbl.create in
-  Array.iter (fun el -> Hashtbl.replace tbl el (match Hashtbl.find_opt tbl el with
-  | None -> 1
-  | Some a -> a + 1
-  )) tab;
 
-  Hashtbl.iter (fun key val -> if val < 2 then Hashtbl.remove tbl key)
+  let dupl = Hashtbl.create 10 in
+  Array.iter (fun card ->
+    Hashtbl.replace dupl card.valeur (match Hashtbl.find_opt dupl card.valeur with
+      | None -> 1
+      | Some n -> n + 1)
+  ) main_simple;
+  pts := !pts + Hashtbl.fold (fun _ count acc -> acc + combinaisons count) dupl 0;
 
-  (* 15 *)
+  (* 15 bordel de merde *)
+  pts := !pts + (ex_15 0 (Array.to_list main_simple)) * 2;
 
-  let dupl_in_15 = ref 0 in
-  let added = ref [] (* j'en ai plus rien à foutre, O(4) = O(1) = O(Ackermann(42, 42)) *)
+  (* Suites *)
+  let sorted = Array.copy main_simple in
+  Array.sort (fun c1 c2 -> compare c1.val_suite c2.val_suite) sorted;
+  let max_suite = ref 0 in
+  let curr_length = ref 1 in
+  let cartes_in = ref [] in
+  let i = ref 1 in
+  while !i < Array.length sorted do
+    if sorted.(!i).val_suite = sorted.(!i - 1).val_suite + 1 then (
+      if !curr_length = 1 then cartes_in := [sorted.(!i - 1)];
+      cartes_in := sorted.(!i) :: !cartes_in;
+      incr curr_length;
+    )
+    else if sorted.(!i).val_suite <> sorted.(!i - 1).val_suite then (
+      curr_length := 1;
+      cartes_in := [];
+    )
 
-  let new_arr = Array.init (fun el -> ctr := ctr + el; added := (el::(!added))
-    if !ctr = 15 then (List.iter (!added) (fun el -> if Array.mem dupl el then incr dupl_in_15); !added = []; 0) 
-    else !ctr mod 15) main in
+    max_suite := max !max_suite !curr_length;
+    incr i
+  done;
+  if !max_suite >= 3 then (
+    let results = ref 0 in
+    List.iter (fun el -> 
+      results := !results + !max_suite * (Hashtbl.find dupl el.valeur - 1)
+    ) !cartes_in;
+    pts := !pts + !results;
+  );
 
-  let tbl = Hashtbl.create in
+  (* "One for his nob" *)
+  let couleur_extra = get_machin_associe_couleur extra.couleur in
+  if Array.exists (fun card -> card.valeur = V && card.couleur = couleur_extra) main then
+  incr pts;
 
-  Array.iter (fun el -> Hashtbl.replace tbl el (match Hashtbl.find_opt tbl el with
-  | None -> 1
-  | Some a -> a + 1
-  )) tab;
+  (* Couleurs *)
+  let first_color = main_simple.(0).couleur in
+  if Array.for_all (fun card -> card.couleur = first_color) main then (
+    pts := !pts + 4;
+    if (get_machin_associe_couleur extra.couleur) = first_color then incr pts;
+  );
 
-  let sum = Hashtbl.fold (fun acc _ val -> acc + val) 0 tbl in
-  pts := (sum + !dupl_in_15) * 15;
-
-  (* SUITE *)
-
-  let length = ref 0 in
-  Array.fast_sort (fun x y -> x - y) main;
-  
-  for i = 0 to 4 do
-    for y = i+1 to 4 do
-      if not(y-!length < 3) then
-        (
-          if 
-
-
-
-        )
-  
-  
-
-
-
+  !pts;;
 
 
 

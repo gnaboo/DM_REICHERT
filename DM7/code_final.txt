@@ -1,0 +1,1026 @@
+DM 7
+Participants:
+Olympe Maillet-Cheng, Ezequiel Fridel-Escalona et Gabriel Ringeisen-Biardeaud
+
+Exos choisis:
+60 : C
+61 : OCaml
+62 : OCaml
+63 : C
+64 : C
+65 : C
+66 : OCaml
+67 : OCaml
+68 : C
+69 : OCaml
+
+#include <math.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+// Structures
+struct Fraction { int num; int den; };                 // exo 63
+struct Iterator { int value; struct Iterator* next; }; // exo 64
+
+struct HashNode { int key; int count; struct HashNode* next; };
+struct HashTable { int size; struct HashNode** buckets; };
+
+// Typedefs
+typedef struct Fraction Fraction;
+typedef struct Iterator Iterator;
+
+typedef struct HashNode HashNode;
+typedef struct HashTable HashTable;
+
+// Toujours différent des autres celui-là
+struct Card { char* value; char* color; };
+typedef struct Card Card;
+
+struct CribbageHand { // exo 69
+    Card hand[4];  // player's hand
+    Card annex[4]; // player's annex
+};
+typedef struct CribbageHand CribbageHand;
+
+// Utils
+void print_array_int(int* array, int size)
+{
+    for (int i = 0; i < size; i += 1) printf("%d ", array[i]);
+    printf("\n");
+}
+
+void swap(int* a, int* b)
+{
+    int temp = *a;
+    *a = *b;
+    *b = temp;
+}
+
+int* quicksort(int* t, int size)
+{
+    if (size < 2) return t;
+
+    int pivot = t[size / 2];
+    int left = 0;
+    int right = size - 1;
+
+    while (left <= right)
+    {
+        while (t[left] < pivot) left += 1;
+        while (t[right] > pivot) right -= 1;
+
+        if (left <= right)
+        {
+            swap(&t[left], &t[right]);
+
+            left += 1;
+            right -= 1;
+        }
+    }
+
+    if (right > 0) quicksort(t, right + 1);
+    if (left < size) quicksort(t + left, size - left);
+
+    return t;
+}
+
+// Iterator
+Iterator* create_iterator(int value)
+{
+    Iterator* iterator = malloc(sizeof(Iterator));
+
+    iterator->value = value;
+    iterator->next = NULL; // null pointer at the end
+
+    return iterator;
+}
+
+void add_iterator(Iterator* iterator, int value)
+{
+    Iterator* new_iterator = create_iterator(value);
+
+    while (iterator->next) iterator = iterator->next;
+    iterator->next = new_iterator;
+}
+
+void free_iterator(Iterator* iterator)
+{
+    while (iterator)
+    {
+        Iterator* next = iterator->next;
+        free(iterator);
+
+        iterator = next;
+    }
+}
+
+void print_iterator(Iterator* iterator)
+{
+    while (iterator)
+    {
+        printf("%d ", iterator->value);
+        iterator = iterator->next;
+    }
+}
+
+// HashTable
+HashTable* create_table(int size)
+{
+    HashTable* table = malloc(sizeof(HashTable));
+
+    table->buckets = malloc(size * sizeof(HashNode*));
+    table->size = size;
+
+    for (int i = 0; i < size; i += 1) table->buckets[i] = NULL;
+    return table;
+}
+
+void insert_or_update_table(HashTable* table, int key, int value)
+{
+    int index = key % table->size;
+    HashNode* node = table->buckets[index];
+
+    while (node)
+    {
+        if (node->key == key)
+        {
+            node->count = value;
+            return;
+        }
+
+        node = node->next;
+    }
+
+    HashNode* new_node = malloc(sizeof(HashNode));
+
+    new_node->key = key;
+    new_node->count = value;
+    new_node->next = table->buckets[index];
+
+    table->buckets[index] = new_node;
+}
+
+int get_count(HashTable* table, int key)
+{
+    int index = key % table->size;
+    HashNode* node = table->buckets[index];
+
+    while (node)
+    {
+        if (node->key == key) return node->count;
+        node = node->next;
+    }
+
+    return 0;
+}
+
+bool exists(HashTable* table, int key)
+{
+    int index = key % table->size;
+    HashNode* node = table->buckets[index];
+
+    while (node)
+    {
+        if (node->key == key) return true;
+        node = node->next;
+    }
+
+    return false;
+}
+
+void free_table(HashTable* table)
+{
+    for (int i = 0; i < table->size; i += 1)
+    {
+        HashNode* node = table->buckets[i];
+
+        while (node)
+        {
+            HashNode* next = node->next;
+            free(node);
+
+            node = next;
+        }
+    }
+
+    free(table->buckets);
+    free(table);
+}
+
+// Functions
+// Exercice 60 :
+int gcd(int a, int b)
+{
+    if (b == 0) return a;
+    return gcd(b, a % b);
+}
+
+int mcnuggets(int a, int b) // O(min(a,b))
+{
+    // Use Frobenius number theorem (McNugget numbers) to simplify the problem
+    // Check if the number is a McNugget number and return it
+    if (a != 1 && b != 1 && gcd(a, b) == 1) return a * b - a - b;
+
+    // Otherwise, error (infinite case)
+    printf("Error: infinite case\n");
+    exit(1);
+}
+
+// Exercice 61 :
+bool existesomme(int* t, int size) // O(n(n-1)/2 + n) => O(n^2)
+{
+    // Add all possible sums (with distinct indexes) to a hash table
+    HashTable* table = create_table(size);
+
+    for (int i = 0; i < size; i += 1)
+        for (int j = i + 1; j < size; j += 1)
+            insert_or_update_table(table, t[i] + t[j], 1);
+
+    // Check if the sum exists in the hash table
+    bool val = false;
+
+    for (int i = 0; i < size; i += 1)
+        if (exists(table, t[i])) { val = true; break; }
+
+    // Free the hash table and return the result
+    free_table(table);
+    return val;
+}
+
+// Exercice 62 :
+int fincommune(char* a, char* b) // O(n)
+{
+    int len_a = strlen(a);
+    int len_b = strlen(b);
+
+    // Get the minimum length between the two strings
+    int len = len_a < len_b ? len_a : len_b;
+
+    // Compare the strings from the end to the beginning
+    for (int i = 0; i < len; i += 1)
+        if (a[len_a - i - 1] != b[len_b - i - 1]) return i;
+
+    return len;
+}
+
+// Exercice 63 :
+bool simplifiable(Fraction* t, int size) // O(n^2)
+{
+    // Check for each fraction if it can be simplified into an other one in the array
+    for (int i = 0; i < size; i += 1)
+    {
+        Fraction f1 = t[i];
+
+        if (f1.den == 0)
+        {
+            printf("Error: division by zero\n");
+            exit(1);
+        }
+
+        for (int j = 0; j < size; j += 1)
+        {
+            // Skip the same fraction
+            if (i == j) continue;
+
+            // Compare the current fraction with the others
+            Fraction f2 = t[j];
+            if (f1.num * f2.den == f1.den * f2.num) return true;
+        }
+    }
+
+    return false;
+}
+
+// Exercice 64 :
+Iterator* miroirlc(Iterator* l)
+{
+    // Create a new linked list with the same values but in reverse order
+    Iterator* new_list = NULL;
+
+    while (l)
+    {
+        // Replace the head of the new list with the current value
+        Iterator* new_iterator = create_iterator(l->value);
+
+        new_iterator->next = new_list;
+        new_list = new_iterator;
+
+        // Then, move to the next value
+        l = l->next;
+    }
+
+    return new_list;
+}
+
+// Exercice 65 :
+int sommeminmax(int* t, int size)
+{
+    // Assume that the size is even
+    // Sort the array with a quicksort algorithm
+
+    // Trivial cases
+    if (size == 0) return 0;
+    if (size == 2) return t[1];
+
+    // NPMA => Not Possible to Make deux fou-A the same error :p
+    int* sorted = malloc(size * sizeof(int));
+    for (int i = 0; i < size; i += 1) sorted[i] = t[i];
+
+    quicksort(sorted, size);
+
+    // Free the sorted array and return the wanted value
+    int sum = 0;
+    for (int i = 0; i < size; i += 2) sum += sorted[i + 1];
+
+    free(sorted);
+
+    return sum;
+}
+
+// Exercice 66 :
+int medianfreq(int* t, int size)
+{
+    // Trivial cases
+    if (size < 3) return 0;
+
+    // Store each value in a hash table with its frequency
+    HashTable* table = create_table(size);
+
+    for (int i = 0; i < size; i += 1)
+        insert_or_update_table(table, t[i], get_count(table, t[i]) + 1);
+
+    // Get the highest frequency
+    int max = 0;
+
+    for (int i = 0; i < size; i += 1)
+    {
+        int count = get_count(table, t[i]);
+        if (count > max) max = count;
+    }
+
+    // Find all values with the highest frequency
+    int countMax = 0;
+
+    for (int i = 0; i < table->size; i += 1)
+        if (get_count(table, i) == max) countMax += 1;
+
+    // Get the index and values of each value with the highest frequency
+    int* values = malloc(countMax * sizeof(int));
+
+    for (int i = 0, j = 0; i < table->size; i += 1)
+        if (get_count(table, i) == max) { values[j] = i; j += 1; }
+
+    // Get the index of each value with the highest frequency
+    int* indexes = malloc(countMax * max * sizeof(int));
+    int* indexesSum = malloc(countMax * sizeof(int));
+
+    for (int i = 0; i < countMax; i += 1)
+    {
+        int index = 0;
+        indexesSum[i] = 0;
+
+        for (int j = 0; j < size; j += 1)
+        {
+            if (t[j] == values[i])
+            {
+                indexes[i * max + index] = j;
+                indexesSum[i] += j;
+                index += 1;
+            }
+        }
+    }
+
+    // Get the greatest sum and if there are multiple max sums,
+    // get the one with the smallest median index
+    int maxSum = 0;
+    int minMedian = size;
+
+    for (int i = 0; i < countMax; i += 1)
+    {
+        int medianIndex = max / 2 - (max % 2 == 0 ? 1 : 0);
+        int medianValue = indexes[i * max + medianIndex];
+
+        if (indexesSum[i] > maxSum)
+        {
+            maxSum = indexesSum[i];
+            minMedian = medianValue;
+        }
+        else if (indexesSum[i] == maxSum && medianValue < minMedian)
+        {
+            minMedian = medianValue;
+        }
+    }
+
+    // Freeeeeeeeee
+    free(values);
+    free(indexes);
+    free(indexesSum);
+
+    free_table(table);
+
+    return minMedian;
+}
+
+// Exercice 67 :
+int niederschaeffolsheim(char* s)
+{
+    // Check if the string is empty
+    if (s[0] == '\0') return 0;
+
+    // Create a new iterator, and store every index where a word starts
+    Iterator* iterator = create_iterator(s[0] == ' ' ? 1 : 0);
+
+    for (int i = 1; s[i] != '\0'; i += 1)
+    {
+        if (s[i] == ' ') add_iterator(iterator, i);
+        else if (s[i + 1] == '\0') add_iterator(iterator, i + 1);
+    }
+
+    // Get the greatest gap between two words, and ignore words with a length of 0
+    int max = 0;
+
+    while (iterator->next)
+    {
+        // depending on the last character of the word
+        int correction = (iterator->value < 2 && !iterator->next->next) ? 0 : 1;
+
+        int diff = iterator->next->value - iterator->value - correction;
+        if (diff > max) max = diff;
+
+        // to avoid memory leaks
+        Iterator* next = iterator->next;
+        free(iterator);
+
+        iterator = next;
+    }
+
+    // Free the last iterator and return the result
+    free(iterator);
+    return max;
+}
+
+// Exercice 68 :
+bool prime(int n)
+{
+    if (n < 2) return false;
+    if (n < 4) return true;
+
+    if (n % 2 == 0) return false;
+
+    for (int i = 3; i <= n / 2; i += 2) // avec la racine, ç'aurait été mieux
+        if (n % i == 0) return false;
+
+    return true;
+}
+
+char* kneckes(char* s)
+{
+    // Check if the string is empty
+    if (s[0] == '\0' || (s[0] == ' ' && s[1] == '\0'))
+    {
+        char* result = malloc(7 * sizeof(char));
+        strcpy(result, "hopla");
+        return result;
+    }
+
+    // Create a new iterator, and store every index where a word starts
+    Iterator* iterator = create_iterator(s[0] == ' ' ? 1 : 0);
+    int string_length = 1;
+
+    for (int i = 1; s[i] != '\0'; i += 1)
+    {
+        if (s[i] == ' ') add_iterator(iterator, i);
+        else if (s[i + 1] == '\0') add_iterator(iterator, i + 1);
+
+        string_length += 1;
+    }
+
+    // Insert "hopla" between each word which index is prime
+    int i = 0;
+
+    Iterator* indexes = create_iterator(0);
+    int length = 0;
+
+    while (iterator)
+    {
+        if (prime(i))
+        {
+            add_iterator(indexes, iterator->value);
+            length += 1;
+        }
+
+        // to avoid memory leaks
+        Iterator* next = iterator->next;
+        free(iterator);
+
+        iterator = next;
+        i += 1;
+    }
+
+    free(iterator);
+
+    // Create a new string with the new words
+    int new_length = length * 6 + string_length + 1;
+    char* result = malloc(new_length * sizeof(char));
+
+    int j = 0;
+
+    // insert "hopla" before each word which index is prime
+    for (int i = 0; i < string_length; i += 1)
+    {
+        if (indexes->next && indexes->next->value == i)
+        {
+            result[j] = ' '; j += 1;
+            result[j] = 'h'; j += 1;
+            result[j] = 'o'; j += 1;
+            result[j] = 'p'; j += 1;
+            result[j] = 'l'; j += 1;
+            result[j] = 'a'; j += 1;
+
+            // Avoid memory leaks
+            Iterator* next = indexes->next;
+            free(indexes);
+            indexes = next;
+        }
+
+        result[j] = s[i];
+        j += 1;
+    }
+
+    result[j] = '\0';
+
+    // Free and return
+    free_iterator(indexes);
+    return result;
+}
+
+// Exercice 69 :
+int crib(CribbageHand hand)
+{
+    // la réponse à la question universelle est la réponse à tout
+    // et crib est inclus dans tout
+    return 42;
+}
+
+// Tests
+int main()
+{
+    // Exercice 60
+    printf("Exercice 60 : %d\n\n", mcnuggets(4, 7));
+
+    // Exercice 61
+    int t1[] = {1, 2, 3, 4, 5};
+    int t2[] = {2, 2, 6, 12};
+
+    printf("Exercice 61 : %s\n", existesomme(t1, 5) ? "true" : "false");
+    printf("Exercice 61 : %s\n", existesomme(t2, 4) ? "true" : "false");
+    printf("\n");
+
+    // Exercice 62
+    printf("Exercice 62 : %d\n", fincommune("hello", "world"));
+    printf("Exercice 62 : %d\n", fincommune("mister", "master"));
+    printf("\n");
+
+    // Exercice 63
+    Fraction f1 = {1, 2};
+    Fraction f2 = {2, 4};
+    Fraction f3 = {3, 4};
+    Fraction f4 = {4, 5};
+
+    Fraction t3[] = {f1, f2, f3};
+    Fraction t4[] = {f1, f3, f4};
+
+    printf("Exercice 63 : %s\n", simplifiable(t3, 3) ? "true" : "false");
+    printf("Exercice 63 : %s\n", simplifiable(t4, 3) ? "true" : "false");
+    printf("\n");
+
+    // Exercice 64
+    Iterator* l1 = create_iterator(1);
+    for (int i = 2; i <= 5; i += 1) add_iterator(l1, i);
+
+    Iterator* l2 = miroirlc(l1);
+
+    printf("Exercice 64 : [");
+    print_iterator(l1);
+    printf("] à pour chaîne miroir : [");
+    print_iterator(l2);
+    printf("]\n\n");
+
+    free_iterator(l1);
+    free_iterator(l2);
+
+    // Exercice 65
+    int t5[] = {29, 59, 95, 80, 96, 92, 37, 67, 77, 73, 28, 30, 54, 100, 65, 42, 38, 94, 27, 62};
+    printf("Exercice 65 : %d\n\n", sommeminmax(t5, 20));
+
+    // Exercice 66
+    int t6[] = {7, 8, 2, 8, 1, 10, 4, 3, 3, 1, 0, 3, 7, 1, 7, 5, 10, 2, 9, 9};
+    printf("Exercice 66 : %d\n\n", medianfreq(t6, 20));
+
+    // Exercice 67
+    printf("Exercice 67 : %d\n", niederschaeffolsheim(" hello niederschaeffolsheim world hopla "));
+    printf("Exercice 67 : %d\n", niederschaeffolsheim(" hello "));
+    printf("Exercice 67 : %d\n", niederschaeffolsheim(" hello"));
+    printf("Exercice 67 : %d\n", niederschaeffolsheim("hello "));
+    printf("Exercice 67 : %d\n", niederschaeffolsheim("hello"));
+    printf("Exercice 67 : %d\n", niederschaeffolsheim(""));
+    printf("\n");
+
+    // Exercice 68
+    char* s1 = kneckes("Ceci est un test de la fonction kneckes.");
+    char* s2 = kneckes(" hello ");
+    char* s3 = kneckes(" hello");
+    char* s4 = kneckes("hello ");
+    char* s5 = kneckes("hello");
+    char* s6 = kneckes("");
+    char* s7 = kneckes("Test hello world");
+
+    printf("Exercice 68 : %s\n", s1); free(s1);
+    printf("Exercice 68 : %s\n", s2); free(s2);
+    printf("Exercice 68 : %s\n", s3); free(s3);
+    printf("Exercice 68 : %s\n", s4); free(s4);
+    printf("Exercice 68 : %s\n", s5); free(s5);
+    printf("Exercice 68 : %s\n", s6); free(s6);
+    printf("Exercice 68 : %s\n", s7); free(s7);
+    printf("\n");
+
+    // Exercice 69
+    CribbageHand hand_test = { {{'5', 'P'}, {'5', 'C'}, {'5', 'K'}, {'5', 'T'}}, {'J', 'C'} };
+    printf("Exercice 69 : %d\n", crib(hand_test));
+
+    return 0;
+}
+
+// Sources :
+// HashTable => Copy-Past of an implementation done for a Prologin problem
+// McNugget numbers => https://mathworld.wolfram.com/McNuggetNumber.html + "Coin Problem" on Wikipedia
+
+
+
+
+
+(* Exercice 60 *) (* COMPILE *)
+let pgcd fst scn = 
+  let a = ref (max fst scn) in
+  let b = ref (min fst scn) in
+  let r = ref (!a mod !b) in
+  while !r <> 0 do
+    a := !b;
+    b := !r;
+    r := !a mod !b;
+  done;
+  !b;;
+
+let mcnuggets a b = 
+  if pgcd a b = 1 then failwith "Il n'existe pas de nombre de mcnuggets";
+  a * b -b -a;;
+
+
+
+(* Exercice 61 *) (* COMPILE *)
+let existesomme (tab: int array) : bool = 
+  let ret = ref false in
+  for i = 0 to (Array.length tab - 1) do
+    if(not !ret ) then
+    for y = 0 to (Array.length tab - 1) do
+      if(not !ret && i <> y) then
+      for x = 0 to (Array.length tab - 1) do
+        if y <> x && tab.(i) = tab.(y) + tab.(x) then ret := true
+      done;
+    done;
+  done;
+  !ret;;
+
+
+(* Exercice 62 *) (* COMPILE *)
+let fincommune (str1: string) (str2: string) : int = 
+  let counter = ref 0 in
+  let size1 = (String.length str1) in
+  let size2 = (String.length str2) in
+  let min_len = min size1 size2 in
+  for i = 0 to (min_len - 1) do
+    if(i = !counter && str1.[size1-i-1] = str2.[size2-i-1]) then incr counter
+  done;
+  !counter;;
+
+
+(* Exercice 63 *) (* COMPILE *)
+type fraction = { nom: int; denom: int;};;
+let simplifiable (tab: fraction array) : bool = (* O(n^2) si jamais on fait chaque fraction avec celle d'après... *)
+	let is_same x1 x2 y1 y2 = x1*y2 = y1*x2 in (*\forall (x, x')\in\mathbb{Z}^2, (y, y') \in \mathbb{Z}^{*}\times\mathbb{Z}^{*}\\ \frac{x}{y} = \frac{x'}{y'} \Longleftrightarrow xy' = yx'*)
+	let result = ref false in
+	for i = 0 to (Array.length tab -1) do
+		if not !result then
+		begin		
+		for y = (i+1) to (Array.length tab -1) do
+			result := tab.(i).denom * tab.(y).denom <> 0 && is_same (tab.(i).nom) (tab.(y).nom) (tab.(i).denom) (tab.(y).denom)
+		done;
+		end
+	done;
+	!result;;
+
+(* Exercice 64 *)
+type 'a lc = { mutable tete : 'a option; mutable suivant : 'a lc option };;
+let creer_lc() = { tete = None; suivant = None };;
+let rec taille_lc l =
+  match l.tete, l.suivant with
+  | None, _ -> 0
+  | _, None -> 1
+  | _, Some reste -> 1 + taille_lc reste;;
+
+let rec inserer_lc l i x =
+  match i, l.tete, l.suivant with
+  | 0, None, _ -> l.tete <- Some x
+  | 0, Some a, None -> let reste = { tete = Some a; suivant = None } in l.tete <- Some x; l.suivant <- Some reste
+  | 0, Some a, Some reste -> let lbis = { tete = Some a; suivant = Some reste } in l.tete <- Some x; l.suivant <- Some lbis
+  | _, None, _ -> failwith "Liste chaînée trop courte"
+  | 1, _, None -> let reste = { tete = Some x; suivant = None } in l.suivant <- Some reste
+  | _, _, None -> failwith "Liste chaînée trop courte"
+  | _, _, Some reste -> inserer_lc reste (i-1) x;;
+
+
+
+let miroirlc (lcv: 'a lc) = 
+  let taille = taille_lc lcv in
+  match taille with 
+  | a when a < 1 -> creer_lc ()
+  | size -> 
+    let new_lc = creer_lc () in
+    let next = ref lcv in
+    for i = 0 to (size - 1) do
+      inserer_lc new_lc i (!next.tete);
+      next := (match !next.suivant with | Some s -> s | _ -> failwith "Suicide toi");
+    done;
+    new_lc;;
+      
+
+
+
+
+
+
+(* Exercice 65 *) (* COMPILE *)
+let sommeminmax (arr: int array) : int =
+  Array.fast_sort (fun x y -> x - y) arr;
+  let counter = ref 0 in
+  for i = 0 to (Array.length arr - 1) do
+  	if i mod 2 = 0 then counter := !counter + (max (arr.(i)) (arr.(i+1)));
+  done;
+  !counter;;
+
+
+
+(* Exercice 66 *)
+let build_frequency_table arr =
+  let table = Hashtbl.create (Array.length arr) in
+  Array.iter (fun x ->
+    let count = Hashtbl.find_opt table x |> Option.value ~default:0 in
+    Hashtbl.replace table x (count + 1)
+  ) arr;
+  table
+;;
+
+let max_frequency table =
+  Hashtbl.fold (fun _ count acc -> max acc count) table 0
+;;
+
+let values_with_max_freq table max_freq =
+  Hashtbl.fold (fun key count acc -> if count = max_freq then key :: acc else acc) table []
+;;
+
+let indices_of_value arr value =
+  let indices = Array.fold_left (fun (idxs, i) x -> 
+    if x = value then (i :: idxs, i + 1) else (idxs, i + 1)
+  ) ([], 0) arr in
+  List.rev (fst indices)
+;;
+
+let median_of_sorted_list lst =
+  let len = List.length lst in
+  if len = 0 then None
+  else if len mod 2 = 1 then Some (List.nth lst (len / 2))
+  else Some (List.nth lst ((len / 2) - 1))
+;;
+
+let medianefreq arr =
+  let size = Array.length arr in
+  if size < 3 then 0 else
+  let table = build_frequency_table arr in
+  let max_freq = max_frequency table in
+  let values = values_with_max_freq table max_freq in
+
+  let indexed_values = 
+    List.map (fun v ->
+      let indices = indices_of_value arr v in
+      let sum_indices = List.fold_left ( + ) 0 indices in
+      let median_index = median_of_sorted_list indices |> Option.get in
+      (sum_indices, median_index, v)
+    ) values
+  in
+
+  let _, min_median, _ = List.fold_left (fun (max_sum, min_med, best_value) (sum, median, value) ->
+    if sum > max_sum then (sum, median, value)
+    else if sum = max_sum && median < min_med then (sum, median, value)
+    else (max_sum, min_med, best_value)
+  ) (0, size, 0) indexed_values in
+
+  min_median
+;;
+
+
+
+
+
+
+(* Exercice 67 *) (* COMPILE *)
+let niederschaeffolsheim (str: string) : int =
+  let compteur = ref 0 in
+  let maxi = ref 0 in
+  String.iter (fun el -> 
+    if el = ' ' then (
+      if !compteur <> 0 then (
+        if !compteur > !maxi then maxi := !compteur;
+        compteur := 0
+      )
+    ) else 
+      incr compteur
+  ) str;
+  
+  if !compteur > !maxi then maxi := !compteur;
+  !maxi ;;
+
+
+(* Exercice 68 *) (* COMPILE *)
+let is_prime num = if num mod 2 = 0 then num = 2
+else begin
+  let rec aux counter = 
+    if num = counter then true
+    else (num mod counter <> 0) && aux (counter+2)
+  in num <> 1 && aux 3; (* optimisable avec l'algo de Rabin - Miller... *)
+end;;
+
+let stringify car = String.make 1 car;;
+
+let kneckes (str: string) : string = 
+  let compteur = ref 0 in
+  let new_str = ref "" in
+  let length = String.length str in
+  String.iteri (fun i el -> 
+      if el = ' ' && i+1 <> length then (
+        incr compteur;
+        if is_prime !compteur then new_str := !new_str ^ " hopla"
+      );
+      new_str := !new_str ^ (stringify el)
+    ) str;
+  !new_str;;
+
+
+(* Exercice 69 (jolie nombre) *) (* Ne compile pas, j'ai passé 1h à chercher l'erreur et j'ai pas trouvé...*)
+(* Horriblement long (5h dessus pour même pas finir) et d'une difficulté énorme *)
+(* J'espère que ces efforts seront récompensés *)
+type couleur = Pique | Coeur | Carreau | Trefle;;
+type valeur = A | R | D | V | Autre of string;;
+
+let get_machin_associe_valeur str =
+  match str with
+  | "A" -> A
+  | "R" -> R
+  | "D" -> D
+  | "V" -> V
+  | s   -> Autre s;;
+
+let get_machin_associe_couleur str =
+  match str with
+  | "Pique"   -> Pique  
+  | "Coeur"   -> Coeur
+  | "Carreau" -> Carreau
+  | "Trefle"  -> Trefle
+  | _         -> failwith "Erreur couleur";;
+
+type carte = { valeur : string; couleur : string };;
+
+type carte_mais_simple = {
+  valeur: valeur;
+  couleur: couleur;
+  true_val: int;
+  val_suite: int;
+};;
+
+let val_of_valeur card =
+  match card with
+  | Autre s -> int_of_string s
+  | V | D | R -> 10
+  | A -> 1;;
+
+
+let val_pour_suite card =
+  match card with
+  | Autre("10") -> 10
+  | Autre a -> int_of_string a
+  | V -> 11
+  | D -> 12
+  | R -> 13
+  | A -> 1;;
+
+let combinaisons nombre =
+  match nombre with
+  | 2 -> 2
+  | 3 -> 6
+  | 4 -> 12
+  | _ -> 0;;
+
+let filteri f liste =
+  let rec aux i liste = match liste with
+    | [] -> []
+    | a::other -> if f i a then a::aux (i + 1) other else aux (i + 1) other
+  in
+  aux 0 liste;;
+  
+
+let rec ex_15 valeur_actuelle restant =
+  let count = ref 0 in
+  List.iteri (fun i el ->
+    if (valeur_actuelle + el.true_val) = 15 then incr count
+    else if (valeur_actuelle + el.true_val) < 15 then
+      count := !count + ((List.length (List.filter (fun x -> x.true_val = el.true_val) restant)) * ex_15 (valeur_actuelle + el.true_val) (filteri (fun j _ -> i <> j) restant))
+  ) restant;
+  !count;;
+  
+
+let crib (main: carte array) (extra: carte) : int =
+  let all_cards = Array.append main [|extra|] in
+  let main_simple =
+    Array.map (fun el ->
+      { 
+        valeur    = get_machin_associe_valeur el.valeur;
+        couleur   = get_machin_associe_couleur el.couleur;
+        true_val  = val_of_valeur (get_machin_associe_valeur el.valeur);
+        val_suite = val_pour_suite (get_machin_associe_valeur el.valeur)
+      }
+    ) all_cards in 
+
+  let pts = ref 0 in
+
+
+  let dupl = Hashtbl.create 10 in
+  Array.iter (fun card ->
+    Hashtbl.replace dupl card.valeur (match Hashtbl.find_opt dupl card.valeur with
+      | None -> 1
+      | Some n -> n + 1)
+  ) main_simple;
+  pts := !pts + Hashtbl.fold (fun _ count acc -> acc + combinaisons count) dupl 0;
+
+  (* 15 bordel de merde *)
+  pts := !pts + (ex_15 0 (Array.to_list main_simple)) * 2;
+
+  (* Suites *)
+  let sorted = Array.copy main_simple in
+  Array.sort (fun c1 c2 -> compare c1.val_suite c2.val_suite) sorted;
+  let max_suite = ref 0 in
+  let curr_length = ref 1 in
+  let cartes_in = ref [] in
+  let i = ref 1 in
+  while !i < Array.length sorted do
+    if sorted.(!i).val_suite = sorted.(!i - 1).val_suite + 1 then (
+      if !curr_length = 1 then cartes_in := [sorted.(!i - 1)];
+      cartes_in := sorted.(!i) :: !cartes_in;
+      incr curr_length;
+    )
+    else if sorted.(!i).val_suite <> sorted.(!i - 1).val_suite then (
+      curr_length := 1;
+      cartes_in := [];
+    )
+
+    max_suite := max !max_suite !curr_length;
+    incr i
+  done;
+  if !max_suite >= 3 then (
+    let results = ref 0 in
+    List.iter (fun el -> 
+      results := !results + !max_suite * (Hashtbl.find dupl el.valeur - 1)
+    ) !cartes_in;
+    pts := !pts + !results;
+  );
+
+  (* "One for his nob" *)
+  let couleur_extra = get_machin_associe_couleur extra.couleur in
+  if Array.exists (fun card -> card.valeur = V && card.couleur = couleur_extra) main then
+  incr pts;
+
+  (* Couleurs *)
+  let first_color = main_simple.(0).couleur in
+  if Array.for_all (fun card -> card.couleur = first_color) main then (
+    pts := !pts + 4;
+    if (get_machin_associe_couleur extra.couleur) = first_color then incr pts;
+  );
+
+  !pts;;
+
+
+
+
+
+
+

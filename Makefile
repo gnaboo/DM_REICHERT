@@ -1,5 +1,6 @@
 CC = gcc
 CFLAGS = -Wall -Wvla -Wextra -fsanitize=address,undefined -g
+LDFLAGS = -lm
 
 # Default to all source directories if no specific directory is provided
 SRC_DIR ?= .
@@ -10,7 +11,7 @@ EXECUTABLE = $(SRC_DIR)/main
 all: $(EXECUTABLE)
 
 $(EXECUTABLE): $(OBJ_FILES)
-	$(CC) $(CFLAGS) -o $@ $^
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@

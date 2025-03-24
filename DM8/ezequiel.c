@@ -396,13 +396,14 @@ int nombrediviseurs(int n)
         exit(1);
     }
 
-    if (n == 1) return 1;
+    int count = 0;
+    int i = 1;
 
-    int sqrt_n = sqrt(n); // TODO: check if we can use this function
-    int count = sqrt_n * sqrt_n == n ? -1 : 0;
-
-    for (int i = 1; i <= sqrt_n; i += 1)
-        if (n % i == 0) count += 2;
+    while (i * i <= n)
+    {
+        if (n % i == 0) count += (i * i == n) ? 1 : 2;
+        i += 1;
+    }
 
     return count;
 }
@@ -627,7 +628,6 @@ int main()
     int t71a[] = {2, 0, 3, 1};
     int t71b[] = {1, 2, 3, 0};
     int t71c[] = {1, 2, 2, 0};
-
 
     printf("Exercice 71 : %s\n", idem(t71a, 4) ? "true" : "false"); // true
     printf("Exercice 71 : %s\n", idem(t71b, 4) ? "true" : "false"); // true

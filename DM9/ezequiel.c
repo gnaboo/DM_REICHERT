@@ -18,6 +18,7 @@
 struct Node { int count; struct Node** children; };
 struct Graph { int* vertices; bool** edges; int size; };
 struct Couple86 { char* str; double nb; };
+struct IntCouple { int a; int b; };
 
 struct Iterator { double value; struct Iterator* next; };
 struct Queue { int node; int depth; struct Queue* next; };
@@ -28,6 +29,7 @@ struct HashTable { int size; struct HashNode** buckets; };
 typedef struct Node Node;
 typedef struct Graph Graph;
 typedef struct Couple86 Couple86;
+typedef struct IntCouple IntCouple;
 
 typedef struct Iterator Iterator;
 typedef struct Queue Queue;
@@ -109,6 +111,16 @@ void print82(int** matrix, int** result, int* indexes, int rows, int col1, int c
     printf("Output: ");
     print_matrix(result, rows, col2);
     print_newline;
+}
+
+void print_couples86(Couple86** couples, int size)
+{
+    printf("{\n");
+
+    for (int i = 0; i < size; i += 1)
+        printf("  {\"%s\" : %g},\n", couples[i]->str, couples[i]->nb);
+
+    printf("}\n");
 }
 
 // Node
@@ -250,11 +262,21 @@ int* iterator_to_int_array(Iterator* iterator, int size)
     return array;
 }
 
+void value_add_last_iterator(Iterator* iterator, double value)
+{
+    // Check if the iterator is empty
+    if (iterator == NULL) return;
+
+    // Add the value to the last element of the iterator
+    while (iterator->next) iterator = iterator->next;
+    iterator->value += value;
+}
+
 void print_iterator(Iterator* iterator)
 {
     while (iterator)
     {
-        printf("%d ", iterator->value);
+        printf("%g ", iterator->value);
         iterator = iterator->next;
     }
 
@@ -706,8 +728,8 @@ Couple86** avggroupby(Couple86** tab, int size)
         else
         {
             // if the current element is the same as the previous one
-            // add the current element to the last sum
-            sums->value += new_tab[i]->nb;
+            // increment the sum of the furthest element
+            value_add_last_iterator(sums, new_tab[i]->nb);
         }
     }
 
@@ -721,7 +743,7 @@ Couple86** avggroupby(Couple86** tab, int size)
         if (i == unique_count - 1) count = size - indexes->value;
         else count = indexes->next->value - indexes->value;
 
-        result[i] = create_couple86(new_tab[indexes->value]->str, sums->value / count);
+        result[i] = create_couple86(new_tab[(int) indexes->value]->str, sums->value / count);
 
         // free and update the indexes and sums
         Iterator* next_index = indexes->next;
@@ -736,14 +758,156 @@ Couple86** avggroupby(Couple86** tab, int size)
 
     // free the old array of couples
     free_couples86(new_tab, size);
+    return result;
+}
 
-    // print
-    printf("Exercice 86 : the average by groups is :\n");
-    for (int i = 0; i < unique_count; i += 1)
-        printf("%s : %g\n", result[i]->str, result[i]->nb);
-    print_newline;
+// Exercice 87
+int cmp_substr_legalement(char* str, int start, int end, int len)
+{
+    // Compare the substrings without using "[p+1]" (pointer arithmetic)
+    for (int i = 0; i < len; i += 1)
+        if (str[start + i] != str[end + i])
+            return 0;
 
-    return NULL;
+    return 1;
+}
+
+IntCouple* facteurmax(char* str)
+{
+    int n = strlen(str);
+
+    int best_len = 0;
+    int index1 = 0;
+    int index2 = 0;
+
+    for (int len = n; len > 0; len -= 1)
+    {
+        for (int i = 0; i <= n - len; i += 1)
+        {
+            int first = -1;
+            int second = -1;
+
+            for (int j = i + 1; j <= n - len; j += 1)
+            {
+                if (cmp_substr_legalement(str, i, j, len) == 1)
+                {
+                    first = i;
+                    second = j;
+                    break;
+                }
+            }
+
+            if (first != -1 && second != -1)
+            {
+                // Check if the length is greater than the best length
+                if (len > best_len)
+                {
+                    best_len = len;
+                    index1 = first;
+                    index2 = second;
+                }
+            }
+        }
+
+        if (best_len > 0) break;
+    }
+
+    // If no substring was found, throw an printf error and return NULL
+    if (best_len == 0)
+    {
+        printf("Error: No substring found 😔\n");
+        return NULL;
+    }
+
+    // Create and return the result
+    IntCouple* result = malloc(sizeof(IntCouple));
+
+    result->a = index1;
+    result->b = index2;
+
+    return result;
+}
+
+// Exercice 88
+void gauss(double** matrix, double* vertex, int size)
+{
+    // avoid the trivial cases, assume the matrix is square, and let's mute the matrix
+    for (int i = 0; i < size; i += 1)
+    {
+        double pivot = matrix[i][i];
+
+        if (pivot != 1)
+        {
+            for (int j = 0; j < size; j += 1)
+                matrix[i][j] /= pivot;
+            vertex[i] /= pivot;
+        }
+
+        // eliminate the other rows
+        for (int k = i + 1; k < size; k += 1)
+        {
+            double factor = matrix[k][i];
+
+            for (int j = i; j < size; j += 1)
+                matrix[k][j] -= factor * matrix[i][j];
+            vertex[k] -= factor * vertex[i];
+        }
+    }
+}
+
+double* hyperplan(double** vertices, int n)
+{
+    // Assume that `vertices` is a 2D array of size (n-1) x n
+    // Check if the vertices are valid
+    if (n < 1)
+    {
+        printf("Error: Invalid input.\n");
+        exit(1);
+    }
+
+    // Get the equation of the hyperplane
+
+    // Initialize an system of equations like Ax = B
+    double** matrix = malloc((n - 1) * sizeof(double*));
+    double* vertex = malloc((n - 1) * sizeof(double));
+
+    for (int i = 0; i < n - 1; i += 1)
+    {
+        matrix[i] = malloc((n - 1) * sizeof(double));
+
+        // Fill the matrix with the vertices
+        for (int j = 0; j < n - 1; j += 1)
+            matrix[i][j] = vertices[i][j + 1];
+
+        // Fill the vertex with the last column of the vertices
+        vertex[i] = -vertices[i][0];
+    }
+
+    // Apply the Gauss elimination method
+    gauss(matrix, vertex, n - 1);
+
+    // Inverse substitution
+    double* x = malloc((n - 1) * sizeof(double));
+    for (int i = n - 2; i >= 0; i -= 1)
+    {
+        x[i] = vertex[i];
+
+        for (int j = i + 1; j < n - 1; j += 1)
+            x[i] -= matrix[i][j] * x[j];
+    }
+
+    // Construct the hyperplane equation
+    double* hyperplane = malloc(n * sizeof(double));
+
+    hyperplane[0] = 1;
+    for (int i = 0; i < n - 1; i += 1) hyperplane[i + 1] = x[i];
+
+    // Free the memory used
+    free_matrix((int**) matrix, n - 1);
+    free(vertex);
+    free(x);
+
+    return hyperplane;
 }
 
 // Test
@@ -903,6 +1067,8 @@ int main()
     free_node(tree_c);
     free_node(node1d);
 
+    print_newline;
+
     // Exercice 84
     Graph* graphA = init_graph(4);
 
@@ -926,6 +1092,8 @@ int main()
     free(resultB);
     free_graph(graphA);
 
+    print_newline;
+
     // Exercice 85
     double tab85a[] = { 1, 1 };        // (X-1)^2
     double tab85b[] = { 1, 1, 1, -1 }; // (X+1)(X-1)^3
@@ -946,6 +1114,8 @@ int main()
     free(result85b);
     free(result85c);
 
+    print_newline;
+
     // Exercice 86
     char* tab86a_data[] = { "apple", "banana", "apple", "banana", "cherry" };
 
@@ -953,25 +1123,78 @@ int main()
     for (int i = 0; i < 5; i += 1)
         tab86a[i] = create_couple86(tab86a_data[i], i + 1);
 
-    // Couple86** tab86b = malloc(5 * sizeof(Couple86*));
-    // for (int i = 0; i < 5; i += 1)
-    //     tab86b[i] = create_couple86((char[]){ 'A' + i, '\0' }, i + 1);
+    Couple86** tab86b = malloc(5 * sizeof(Couple86*));
+    for (int i = 0; i < 5; i += 1)
+        tab86b[i] = create_couple86((char[]){ 'A' + i%2, '\0' }, (double) (i + 1) / 2);
 
     Couple86** result86a = avggroupby(tab86a, 5);
-    // Couple86** result86b = avggroupby(tab86b, 5);
+    Couple86** result86b = avggroupby(tab86b, 5);
 
     printf("Exercice 86 : the average by groups is :\n");
-    // for (int i = 0; i < 5; i += 1)
-    //     printf("%s: %g\n", tab86a[i]->str, tab86a[i]->nb);
-    // printf("\n");
+    print_couples86(result86a, 3);
+    printf("Exercice 86 : the average by groups is :\n");
+    print_couples86(result86b, 2);
 
     free_couples86(tab86a, 5);
-    // free_couples86(result86a, 5);
+    free_couples86(result86a, 3);
+    free_couples86(tab86b, 5);
+    free_couples86(result86b, 2);
+
+    print_newline;
+
+    // Exercice 87
+    char** strings87 = malloc(4 * sizeof(char*));
+    strings87[0] = "123451234";
+    strings87[1] = "aaatesttest";
+    strings87[2] = "abcde";
+    strings87[3] = "aaa";
+
+    for (int i = 0; i < 4; i += 1)
+    {
+        IntCouple* result87 = facteurmax(strings87[i]);
+
+        if (result87 == NULL)
+        {
+            printf("Exercice 87 : no substring found in \"%s\"\n", strings87[i]);
+            continue;
+        }
+
+        printf("Exercice 87 : the 'max factor' of \"%s\" is : ", strings87[i]);
+        printf("(%d, %d)\n", result87->a, result87->b);
+
+        free(result87);
+    }
+
+    free(strings87);
+    print_newline;
+
+    // Exercice 88
+    double** verticesA = malloc(2 * sizeof(double*));
+    verticesA[0] = malloc(3 * sizeof(double));
+    verticesA[1] = malloc(3 * sizeof(double));
+
+    for (int i = 0, k = 1; i < 2; i += 1)
+    {
+        for (int j = 0; j < 3; j += 1)
+        {
+            verticesA[i][j] = k;
+            k += 1;
+        }
+    }
+
+    double* hyperplaneA = hyperplan(verticesA, 3);
+
+    printf("Exercice 88 : the hyperplane is : ");
+    print_array_double(hyperplaneA, 3); // 1, -2, 1
+
+    free_matrix((int**) verticesA, 2);
+    free(hyperplaneA);
 
     return 0;
 }
 
 // Sources :
+// Exercices originaux : http://jdreichert.fr/Enseignement/CPGE/MP2I/exercices.pdf
 // PPCM ensembliste : https://fr.wikipedia.org/wiki/Plus_petit_commun_multiple
 // Hash Table : https://en.wikipedia.org/wiki/Hash_table
 // Binary Tree : https://en.wikipedia.org/wiki/Binary_tree

@@ -10,7 +10,7 @@
 /* Newline macro */
 #define print_newline printf("\n")
 /* Print a Node */
-#define print_node(node) __print_node_(node, 0, 1)
+#define print_node(node) __print_node_(node, 0, 1), print_newline
 /* String of bool */
 #define str_of_bool(value) (value ? "true" : "false")
 
@@ -42,8 +42,12 @@ void print_array_int(int* array, int size)
     int start = size < 0 ? 1 : 0;
     if (size < 0) size = array[0];
 
-    for (int i = start; i < size + start; i += 1) printf("%d ", array[i]);
-    printf("\n");
+    printf("[");
+
+    for (int i = start; i < size + start; i += 1)
+        printf("%d%s", array[i], (i < size + start - 1 ? ", " : ""));
+
+    printf("]\n");
 }
 
 void print_array_double(double* array, int size)
@@ -51,8 +55,12 @@ void print_array_double(double* array, int size)
     int start = size < 0 ? 1 : 0;
     if (size < 0) size = array[0];
 
-    for (int i = start; i < size + start; i += 1) printf("%g ", array[i]);
-    printf("\n");
+    printf("[");
+
+    for (int i = start; i < size + start; i += 1)
+        printf("%g%s", array[i], (i < size + start - 1 ? ", " : ""));
+
+    printf("]\n");
 }
 
 void print_matrix(int** matrix, int rows, int cols)
@@ -98,7 +106,6 @@ void free_matrix(int** matrix, int rows)
 {
     for (int i = 0; i < rows; i += 1)
         free(matrix[i]);
-
     free(matrix);
 }
 
@@ -107,7 +114,8 @@ void print82(int** matrix, int** result, int* indexes, int rows, int col1, int c
     printf("Exercice 82 : \nInput: ");
     print_matrix(matrix, rows, col1);
     printf("Selecting indexes: ");
-    print_array_int(indexes, col2);
+    if (col2 > 0) print_array_int(indexes, col2);
+    else printf("(any)\n");
     printf("Output: ");
     print_matrix(result, rows, col2);
     print_newline;
@@ -121,6 +129,35 @@ void print_couples86(Couple86** couples, int size)
         printf("  {\"%s\" : %g},\n", couples[i]->str, couples[i]->nb);
 
     printf("}\n");
+}
+
+char*** make_cards(char* game) {
+    char*** cards = malloc(8 * sizeof(char**));
+    for (int i = 0; i < 8; i += 1) {
+        cards[i] = malloc(4 * sizeof(char*));
+    }
+
+    int index = 0;
+    for (int i = 0; i < 8; i += 1) {
+        for (int j = 0; j < 4; j += 1) {
+            if (game[index + 1] == '1' && game[index + 2] == '0') {
+                cards[i][j] = malloc(4 * sizeof(char));
+                for (int k = 0; k < 3; k += 1) cards[i][j][k] = game[index + k];
+                cards[i][j][3] = '\0';
+
+                index += 3;
+            } else {
+                cards[i][j] = malloc(3 * sizeof(char));
+                cards[i][j][0] = game[index];
+                cards[i][j][1] = game[index + 1];
+                cards[i][j][2] = '\0';
+
+                index += 2;
+            }
+        }
+    }
+
+    return cards;
 }
 
 // Node
@@ -156,7 +193,7 @@ void __print_node_(Node* node, int level, int is_last)
     if (level > 0) printf(is_last ? "└─ " : "├─ ");
     printf("%d\n", node->count);
 
-    for (int i = 0; i < node->count; i++) {
+    for (int i = 0; i < node->count; i += 1) {
         int last_child = (i == node->count - 1);
         __print_node_(node->children[i], level + 1, last_child);
     }
@@ -357,7 +394,8 @@ HashTable* create_htbl(int size)
 int hash_htbl(HashTable* table, int key)
 {
     // this will be enough for the use we'll make of it... (same as a dict. in this case)
-    return key % table->size;
+    // (this version can handle negative keys)
+    return (key % table->size + table->size) % table->size;
 }
 
 void insert(HashTable* table, int key, int value)
@@ -423,6 +461,12 @@ void free_htbl(HashTable* table)
 // Exercice 80
 int ppcm_ens(int* tab, int size)
 {
+    if (size <= 0)
+    {
+        printf("Error: Invalid size\n");
+        exit(1);
+    }
+
     int ppcm = 1;
 
     for (int i = 0; i < size; i += 1)
@@ -452,7 +496,14 @@ int ppcm_ens(int* tab, int size)
 // Exercice 81
 bool subsetsum(int* tab, int size, int sum)
 {
-    // Other option, use the hashtable to store the already computed sums
+    // Exclude size <= 0
+    if (size <= 0)
+    {
+        printf("Error: Invalid size\n");
+        exit(1);
+    }
+
+    // Use the hashtable to store the already computed sums
     // and check if the sum is in the hashtable
     int sums_count = 1 << size; // 2^size
     HashTable* sums = create_htbl(sums_count);
@@ -522,13 +573,14 @@ int** selectfrom(int** matrix, int n, int p, int* indexes, int k)
     // Initialize the result array
     int** result = malloc(n * sizeof(int*));
 
-    for (int i = 0; i < n; i += 1)
-        result[i] = malloc(k * sizeof(int));
-
     // Fill the result array with the selected elements
     for (int i = 0; i < n; i += 1)
+    {
+        result[i] = malloc(k * sizeof(int));
+
         for (int j = 0; j < k; j += 1)
             result[i][j] = matrix[i][indexes[j]];
+    }
 
     return result;
 }
@@ -637,9 +689,9 @@ double* unitaire(double* tab, int size)
         double root = tab[i];
 
         for (int j = 0; j <= size; j += 1) temp[j] = P[j];
-        for (int j = 0; j <= i + 1; ++j) P[j] = 0;
+        for (int j = 0; j <= i + 1; j += 1) P[j] = 0;
 
-        for (int j = 0; j <= i; ++j)
+        for (int j = 0; j <= i; j += 1)
         {
             P[j + 1] += temp[j];
             P[j] -= root * temp[j];
@@ -782,6 +834,8 @@ IntCouple* facteurmax(char* str)
 
     for (int len = n; len > 0; len -= 1)
     {
+        if (n <= 1) break;
+
         for (int i = 0; i <= n - len; i += 1)
         {
             int first = -1;
@@ -815,6 +869,7 @@ IntCouple* facteurmax(char* str)
     // If no substring was found, throw an printf error and return NULL
     if (best_len == 0)
     {
+        // (avoid to throw an error to avoid breaking the program)
         printf("Error: No substring found 😔\n");
         return NULL;
     }
@@ -910,41 +965,173 @@ double* hyperplan(double** vertices, int n)
     return hyperplane;
 }
 
+// Exercice 89
+int get_card_points(char* card, char* trump)
+{
+    char color = card[0];
+    char value = card[1];
+    bool is_trump = (color == trump[0]);
+
+    // Get the card's points
+    if (value == 'Q') return 3;
+    if (value == 'K') return 4;
+    if (value == '1') return 10; // "10" (admit it :D)
+    if (value == 'A') return 11;
+
+    if (value == '9') return is_trump ? 14 : 0;
+    if (value == 'J') return is_trump ? 20 : 2;
+
+    return 0;
+}
+
+bool is_stronger(char* card1, char* card2, char* trump, char leading)
+{
+    // Get the color and value of the cards
+    char color1 = card1[0];
+    char value1 = card1[1];
+    char color2 = card2[0];
+    char value2 = card2[1];
+
+    bool is_trump1 = (color1 == trump[0]);
+    bool is_trump2 = (color2 == trump[0]);
+    bool follow1 = (color1 == leading);
+    bool follow2 = (color2 == leading);
+
+    // Check if the cards are trumps
+    if (is_trump1 && is_trump2)
+    {
+        char order_trump[9] = "J9A1KQ87";
+
+        // Compare the values of the trumps
+        for (int i = 0; i < 8; i += 1)
+        {
+            if (order_trump[i] == value1 && order_trump[i] == value2) return true;
+            if (order_trump[i] == value1) return true;
+            if (order_trump[i] == value2) return false;
+        }
+    }
+    else if (is_trump1 || is_trump2) return is_trump1;
+    else if (follow1 && !follow2) return true;
+    else if (!follow1) return false;
+
+    char order[9] = "A1KQJ987";
+
+    for (int i = 0; i < 8; i += 1)
+    {
+        if (order[i] == value1 && order[i] == value2) return false;
+        if (order[i] == value1) return true;
+        if (order[i] == value2) return false;
+    }
+
+    return false;
+}
+
+int find_winner(char** trick, char* trump, int first_player)
+{
+    int best_player = first_player;
+    char* best_card = trick[0];
+    char leading = best_card[0];
+
+    for (int i = 1; i < 4; i += 1)
+    {
+        int player = (first_player + i) % 4;
+        char* card = trick[i];
+
+        if (is_stronger(card, best_card, trump, leading))
+        {
+            best_player = player;
+            best_card = card;
+        }
+    }
+
+    return best_player;
+}
+
+bool belote(char* trump, int index, char*** cards)
+{
+    // Assume that the cards are contained in a 2D array of size 8 x 4
+    // and that all the variables are initialized properly (valid)
+    int team1 = 0;
+    int team2 = 0;
+
+    int belotePoints = -1;
+
+    int player = (index + 1) % 4;
+
+    for (int i = 0; i < 8; i += 1)
+    {
+        int winner = find_winner(cards[i], trump, player);
+        int team = (winner % 2 == 0) ? 1 : 2;
+
+        int points = 0;
+        for (int j = 0; j < 4; j += 1)
+        {
+            // Check if the player has the "belote" or "rebelote" cards
+            char cardK[3] = { trump[0], 'K', '\0' };
+            char cardQ[3] = { trump[0], 'Q', '\0' };
+
+            if (strcmp(cards[i][j], cardK) == 0 || strcmp(cards[i][j], cardQ) == 0)
+            {
+                int index = (player + j) % 4;
+
+                if (belotePoints == -1) belotePoints = index;
+                else if (belotePoints == index)
+                {
+                    if (index % 2 == 0) team1 += 20;
+                    else team2 += 20;
+                }
+            }
+
+            // Add the points of the cards
+            points += get_card_points(cards[i][j], trump);
+        }
+
+        // Add the points of the trick (+ "10 de der" points)
+        if (team == 1) team1 += points + (i == 7 ? 10 : 0);
+        else team2 += points + (i == 7 ? 10 : 0);
+
+        player = winner;
+    }
+
+    // THE END (of this function)
+    return team1 > team2;
+}
+
 // Test
 int main()
 {
     // Exercice 80
     int tab80_1[] = { 2, 3, 4, 5, 6 };
-    int tab80_2[] = { 1 };
+    int tab80_2[] = { 8 };
     int tab80_3[] = { 1, 1 };
     int tab80_4[] = { 20, 42, 55, 27, 69, 55, 17, 64 };
     int tab80_5[] = { 2, 3, 7 };
 
     printf("Exercice 80 : %d\n", ppcm_ens(tab80_1, 5)); // 2 * 3 * 4 * 5
-    printf("Exercice 80 : %d\n", ppcm_ens(tab80_2, 1)); // 1
+    printf("Exercice 80 : %d\n", ppcm_ens(tab80_2, 1)); // 8
     printf("Exercice 80 : %d\n", ppcm_ens(tab80_3, 2)); // 1
-    printf("Exercice 80 : %d\n", ppcm_ens(tab80_4, 8)); // 
+    printf("Exercice 80 : %d\n", ppcm_ens(tab80_4, 8)); // (2**6)*(3**3)*5*7*11*17*23
     printf("Exercice 80 : %d\n", ppcm_ens(tab80_5, 3)); // 2 * 3 * 7 :D
 
     print_newline;
 
     // Exercice 81
     int tab81_1[] = { 1, 2, 3, 4, 5 };
-    int tab81_2[] = { 1, 2, 3, 4, 5, 6 };
+    int tab81_2[] = { 1, 2, 3, -4, 5, 6 };
     int tab81_3[] = { 1, 7, 6, 4 };
     int tab81_4[] = { 1, 1 };
     int tab81_5[] = { 0 };
 
     printf("Exercice 81 : %s\n", str_of_bool(subsetsum(tab81_1, 5, 6)));
     // Expected: true (1 + 2 + 3 = 6 || ...)
-    printf("Exercice 81 : %s\n", str_of_bool(subsetsum(tab81_2, 6, 10)));
-    // Expected: true (1 + 2 + 3 + 4 = 10 || ...)
+    printf("Exercice 81 : %s\n", str_of_bool(subsetsum(tab81_2, 6, -1)));
+    // Expected: true (3 - 4 = - 1 || ...)
     printf("Exercice 81 : %s\n", str_of_bool(subsetsum(tab81_3, 4, 42)));
-    // Expected: false (1 + 7 + 6 + 4 = 18)
+    // Expected: false (1 + 7 + 6 + 4 = 18 < 42)
     printf("Exercice 81 : %s\n", str_of_bool(subsetsum(tab81_4, 2, 1)));
-    // Expected: true (1 + 1 = 2)
+    // Expected: true (1 = 1 || ...)
     printf("Exercice 81 : %s\n", str_of_bool(subsetsum(tab81_5, 1, 5)));
-    // Expected: false (trivial case)
+    // Expected: false (0 < 5)
 
     print_newline;
 
@@ -959,23 +1146,26 @@ int main()
         4, 5);
 
     int indexes1a[2] = { 0, 1 };
-    int indexes1b[1] = { 42 };
+    int indexes1b[0] = {};
     int indexes2[3] = { 0, 1, 2 };
-    int indexes3[4] = { 2, 4, 1 };
+    int indexes3a[3] = { 2, 4, 1 };
+    int indexes3b[5] = { 0, 1, 2, 3, 4 };
 
     int** result1 = selectfrom(matrix1, 3, 3, indexes1a, 2);
-    int** result2 = selectfrom(matrix1, 3, 3, indexes1b, 0);
+    int** result2 = selectfrom(matrix1, 9, 3, indexes1b, 0);
     int** result3 = selectfrom(matrix2, 4, 0, indexes2, 3);
-    int** result4 = selectfrom(matrix3, 4, 5, indexes3, 3);
+    int** result4 = selectfrom(matrix3, 4, 5, indexes3a, 3);
+    int** result5 = selectfrom(matrix3, 4, 5, indexes3b, 5);
 
     print82(matrix1, result1, indexes1a, 3, 3, 2);
     print82(matrix1, result2, indexes1b, 3, 3, 0);
     print82(matrix2, result3, indexes2, 4, 0, 3);
-    print82(matrix3, result4, indexes3, 4, 5, 3);
+    print82(matrix3, result4, indexes3a, 4, 5, 3);
+    print82(matrix3, result5, indexes3b, 4, 5, 5);
 
-    free_matrix(matrix1, 3); free_matrix(result1, 3); free_matrix(result2, 0);
+    free_matrix(matrix1, 3); free_matrix(result1, 3); free_matrix(result2, 3);
     free_matrix(matrix2, 4); free_matrix(result3, 4);
-    free_matrix(matrix3, 4); free_matrix(result4, 4);
+    free_matrix(matrix3, 4); free_matrix(result4, 4); free_matrix(result5, 4);
 
     // Exercice 83
     Node* node1a = create_node(0);
@@ -1067,8 +1257,6 @@ int main()
     free_node(tree_c);
     free_node(node1d);
 
-    print_newline;
-
     // Exercice 84
     Graph* graphA = init_graph(4);
 
@@ -1118,6 +1306,19 @@ int main()
 
     // Exercice 86
     char* tab86a_data[] = { "apple", "banana", "apple", "banana", "cherry" };
+    char* tab86c_data[] = {
+        "apple", "banana", "apple", "banana", "cherry",
+        "apple", "banana", "cherry", "durian", "apple",
+        "banana", "durian", "fig", "fig", "grape",
+        "grape", "grape", "banana", "cherry", "durian"
+    };
+
+    double tab86c_values[20] = {
+        2, 3,   4,   1, 5,
+        6, 2,   7,  10, 8,
+        4, 6, 3.5, 4.5, 2,
+        4, 6,   5,   6, 4
+    };
 
     Couple86** tab86a = malloc(5 * sizeof(Couple86*));
     for (int i = 0; i < 5; i += 1)
@@ -1127,18 +1328,27 @@ int main()
     for (int i = 0; i < 5; i += 1)
         tab86b[i] = create_couple86((char[]){ 'A' + i%2, '\0' }, (double) (i + 1) / 2);
 
+    Couple86** tab86c = malloc(20 * sizeof(Couple86*));
+    for (int i = 0; i < 20; i += 1)
+        tab86c[i] = create_couple86(tab86c_data[i], tab86c_values[i]);
+
     Couple86** result86a = avggroupby(tab86a, 5);
     Couple86** result86b = avggroupby(tab86b, 5);
+    Couple86** result86c = avggroupby(tab86c, 20);
 
-    printf("Exercice 86 : the average by groups is :\n");
+    printf("Exercice 86 : the 'average group by' is :\n");
     print_couples86(result86a, 3);
-    printf("Exercice 86 : the average by groups is :\n");
+    printf("Exercice 86 : the 'average group by' is :\n");
     print_couples86(result86b, 2);
+    printf("Exercice 86 : the 'average group by' is :\n");
+    print_couples86(result86c, 6);
 
     free_couples86(tab86a, 5);
     free_couples86(result86a, 3);
     free_couples86(tab86b, 5);
     free_couples86(result86b, 2);
+    free_couples86(tab86c, 20);
+    free_couples86(result86c, 6);
 
     print_newline;
 
@@ -1152,14 +1362,9 @@ int main()
     for (int i = 0; i < 4; i += 1)
     {
         IntCouple* result87 = facteurmax(strings87[i]);
+        if (result87 == NULL) continue;
 
-        if (result87 == NULL)
-        {
-            printf("Exercice 87 : no substring found in \"%s\"\n", strings87[i]);
-            continue;
-        }
-
-        printf("Exercice 87 : the 'max factor' of \"%s\" is : ", strings87[i]);
+        printf("Exercice 87 : the 'max factor' of \"%s\" is located at : ", strings87[i]);
         printf("(%d, %d)\n", result87->a, result87->b);
 
         free(result87);
@@ -1182,13 +1387,48 @@ int main()
         }
     }
 
-    double* hyperplaneA = hyperplan(verticesA, 3);
+    double** verticesB = malloc(2 * sizeof(double*));
+    verticesB[0] = malloc(3 * sizeof(double));
+    verticesB[1] = malloc(3 * sizeof(double));
 
-    printf("Exercice 88 : the hyperplane is : ");
+    double verticesB_data[6] = { 9.1, 1.9, -5.8, -2.8, 0.3, 4.1 };
+    for (int i = 0; i < 2; i += 1)
+        for (int j = 0; j < 3; j += 1)
+            verticesB[i][j] = verticesB_data[i * 3 + j];
+
+    double* hyperplaneA = hyperplan(verticesA, 3);
+    double* hyperplaneB = hyperplan(verticesB, 3);
+
+    printf("Exercice 88 : the hyperplane cartesian equation is : ");
     print_array_double(hyperplaneA, 3); // 1, -2, 1
+    printf("Exercice 88 : the hyperplane cartesian equation is : ");
+    print_array_double(hyperplaneB, 3); // 1, -2.21092907..., 0.8447009444...
 
     free_matrix((int**) verticesA, 2);
     free(hyperplaneA);
+    free_matrix((int**) verticesB, 2);
+    free(hyperplaneB);
+
+    print_newline;
+
+    // Exercice 89
+    char*** cardsA = make_cards(
+        "SAS8SJS7D7D8D9DAC10C8CJCQC9CKH10H7HJHAH9H8D10S9DKC7SQCASKDQHQS10DJHK"
+    );
+    char* trumpA = "C";
+    char* trumpB = "H";
+
+    bool result89A = belote(trumpA, 0, cardsA);
+    bool result89B = belote(trumpB, 3, cardsA);
+
+    printf("Exercice 89 : The team with the player '%d' wins : %s\n", 0, str_of_bool(result89A));
+    printf("Exercice 89 : The team with the player '%d' wins : %s\n", 3, str_of_bool(result89B));
+
+    // Free the cards
+    for (int i = 0; i < 8; i += 1)
+        for (int j = 0; j < 4; j += 1)
+            free(cardsA[i][j]);
+    free_matrix((int**) cardsA, 8);
 
     return 0;
 }
